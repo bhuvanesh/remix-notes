@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model cart {
+  item String?   @db.String(255)
+  time String?   @db.String(255)
+  data DateTime? @db.Date
+
+  @@ignore
+}
+
+model randomtable {
+  id          BigInt  @id @default(autoincrement())
+  description String? @db.String(255)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model reply {
+  reply String?
+
+  @@ignore
+}
+
+model notes {
+  id     BigInt  @id @default(autoincrement())
+  note   Json?
+  userid String?
+}
