@@ -1,32 +1,26 @@
-import { useLoaderData } from '@remix-run/react';
-import { PrismaClient } from '@prisma/client';
+import { getAuth } from "@clerk/remix/ssr.server";
+import { redirect } from "@remix-run/node";
 
-const prisma = new PrismaClient();
 
-export async function loader() {
-    const allEntries = await prisma.randomtable.findMany();
-    const allEntriesWithStrings = allEntries.map(entry => {
-        if (entry.id) {
-            return {...entry, id: entry.id.toString()};
-        }
-        return entry;
-    });
-    return { entries: allEntriesWithStrings };
-}
+export const loader = async (args) => {
+    const { sessionClaims } = await getAuth(args);
+ 
+    // If the user does not have the admin role, redirect them to the home page
+    if (sessionClaims?.metadata.role !== "admin") {
+        return redirect("/");
+      console.log(sessionClaims?.metadata.role);
+      
+    }
+    return null;
+   
+};
+ 
+export default function AdminDashboard() {
 
-export default function Notes() {
-    const { entries } = useLoaderData();
-
-    return (
-        <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-4">Notes</h1>
-            <ul>
-                {entries.map((entry) => (
-                    <li key={entry.id} className="mb-2">
-                        {entry.description}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+  return (
+    <>
+      <h1>This is the admin dashboard</h1>      
+      <p>This page is restricted to users with the 'admin' role.</p>
+    </>
+  );
 }
