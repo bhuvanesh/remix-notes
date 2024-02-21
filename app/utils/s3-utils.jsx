@@ -1,4 +1,4 @@
-import AWS from "aws-sdk";
+import AWS from 'aws-sdk';
 
 const REGION = process.env.AWS_S3_REGION;
 const ACCESS_KEY_ID = process.env.AWS_S3_ACCESS_KEY_ID;
@@ -14,13 +14,28 @@ AWS.config.update({
 const s3 = new AWS.S3();
 
 const uploadFileToS3 = (file, fileName) => {
-    const params = {
-      Bucket: BUCKET_NAME,
-      Key: fileName,
-      Body: file,
-    };
-  
-    return s3.upload(params).promise();
+  const params = {
+    Bucket: BUCKET_NAME,
+    Key: fileName,
+    Body: file,
   };
 
-export { uploadFileToS3 };
+  return s3.upload(params).promise();
+};
+
+// Function to list the contents of an S3 bucket
+const listContentsOfBucket = async () => {
+  const params = {
+    Bucket: BUCKET_NAME,
+  };
+
+  try {
+    const data = await s3.listObjectsV2(params).promise();
+    return data; // Returns the full response (including objects' metadata)
+  } catch (error) {
+    console.error("Error listing bucket contents:", error);
+    throw error; // Re-throw the error to handle it in the caller
+  }
+};
+
+export { uploadFileToS3, listContentsOfBucket };
