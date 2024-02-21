@@ -22,6 +22,7 @@ export async function loader({ params }) {
       content: noteObject.noteContent,
     };
   });
+  // console.log('checkpoint')
   return { entries: notesFormatted, userId };
 };
 
@@ -50,7 +51,9 @@ export const action = async ({ request }) => {
   }
 };
 
-export default function Notes() {
+export default function NotesAdmin() {
+  // console.log('component level')
+
   const data = useActionData();
   const { entries: notes, userId } = useLoaderData();
 
