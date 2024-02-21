@@ -37,7 +37,7 @@ export default function SomePage() {
           {data.map((user) => (
             <tr key={user.id}>
               <td className="border px-4 py-2">
-                <Link to={user.id}>{user.id}</Link>
+              <Link to={`/admin/${user.id}`}>{user.id}</Link>
               </td>
             </tr>
           ))}
