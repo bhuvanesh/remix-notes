@@ -4,7 +4,7 @@ import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
 export const loader = async () => {
   try {
     const contents = await listContentsOfBucket();
-    return json({ Contents: contents }); // Ensure data is structured correctly
+    return json({ Contents: contents }); 
   } catch (error) {
     console.error(error);
     return json({ error: error.message });
@@ -15,17 +15,24 @@ export const action = async ({ request }) => {
   const formData = await request.formData();
   const file = formData.get("file");
 
+  // Check if the file is a PDF by examining its MIME type
+  if (file && file.type !== 'application/pdf') {
+    // Return an error message if the file is not a PDF
+    return json({ error: "Please upload only PDF files." });
+  }
+
   if (file && file.size > 0) {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       await uploadFileToS3(buffer, file.name);
-      return redirect('/'); // Ensure this is a correct path for refreshing
+      return null; // Ensure this is a correct path for refreshing
     } catch (error) {
-      return { error: error.message };
+      console.error(error);
+      return json({ error: error.message });
     }
   } else {
-    return { error: "No file uploaded." };
+    return json({ error: "No file uploaded." });
   }
 };
 
@@ -33,14 +40,16 @@ export default function Upload() {
   const contents = useLoaderData();
   const actionData = useActionData();
 
+
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 flex justify-center items-center">
       <div className="text-center">
         <Form method="post" encType="multipart/form-data" className="mb-8">
-          <input type="file" name="file" className="mb-4"/>
+        <input type="file" name="file" accept="application/pdf" className="mb-4"/>
           <button type="submit" className="bg-purple-700 text-white py-2 px-4 rounded hover:bg-purple-800 transition ease-in-out duration-150">Upload</button>
         </Form>
-        {actionData && <p className="text-white">{actionData.error ? actionData.error : "File uploaded successfully. Refreshing..."}</p>}
+        {actionData && <p className="text-white">{actionData.error ? actionData.error : "File uploaded successfully."}</p>}
         <div className="mt-8">
           <h2 className="text-lg text-white mb-4">Bucket Contents:</h2>
           <div className="inline-block min-w-full overflow-hidden align-middle bg-white shadow-md rounded-lg">
