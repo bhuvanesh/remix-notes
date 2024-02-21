@@ -31,7 +31,10 @@ const listContentsOfBucket = async () => {
 
   try {
     const data = await s3.listObjectsV2(params).promise();
-    return data; // Returns the full response (including objects' metadata)
+    return data.Contents.map(item => {
+      const url = `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${item.Key}`;
+      return { name: item.Key, url };
+    });
   } catch (error) {
     console.error("Error listing bucket contents:", error);
     throw error; // Re-throw the error to handle it in the caller

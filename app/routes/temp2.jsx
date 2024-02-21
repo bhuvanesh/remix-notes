@@ -4,7 +4,7 @@ import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
 export const loader = async () => {
   try {
     const contents = await listContentsOfBucket();
-    return json(contents);
+    return json({ Contents: contents }); // Ensure data is structured correctly
   } catch (error) {
     console.error(error);
     return json({ error: error.message });
@@ -20,7 +20,7 @@ export const action = async ({ request }) => {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       await uploadFileToS3(buffer, file.name);
-      return null; // Refresh th
+      return redirect('/'); // Ensure this is a correct path for refreshing
     } catch (error) {
       return { error: error.message };
     }
@@ -40,7 +40,7 @@ export default function Upload() {
           <input type="file" name="file" className="mb-4"/>
           <button type="submit" className="bg-purple-700 text-white py-2 px-4 rounded hover:bg-purple-800 transition ease-in-out duration-150">Upload</button>
         </Form>
-        {actionData && <p className="text-white">{actionData.error ? actionData.error : "File uploaded successfully."}</p>}
+        {actionData && <p className="text-white">{actionData.error ? actionData.error : "File uploaded successfully. Refreshing..."}</p>}
         <div className="mt-8">
           <h2 className="text-lg text-white mb-4">Bucket Contents:</h2>
           <div className="inline-block min-w-full overflow-hidden align-middle bg-white shadow-md rounded-lg">
@@ -57,7 +57,7 @@ export default function Upload() {
                   contents.Contents.map((file, index) => (
                     <tr key={index}>
                       <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        {file.Key}
+                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 visited:text-purple-600">{file.name}</a>
                       </td>
                     </tr>
                   ))
