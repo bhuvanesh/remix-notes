@@ -18,6 +18,9 @@ export default {
       stream: true,
       string_decoder: true,
       util: true,
+      buffer: true,
+      zlib: true,
+      url: true,
     },
   },
 };
