@@ -1,15 +1,21 @@
-import { useActionData, Form,useLoaderData } from "@remix-run/react";
-import { json } from "@remix-run/react";
+import { useActionData, Form, useLoaderData } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node"; 
 import { PrismaClient } from "@prisma/client";
 import NoteList from "../components/NoteList";
-
-
+import { getAuth } from "@clerk/remix/ssr.server"; 
 
 const prisma = new PrismaClient();
 
-export async function loader({ params }) {
-  const userId = params.userId;
-  console.log('userIdss',userId);
+export async function loader(args) {
+  const { sessionClaims } = await getAuth(args);
+
+  // If the user does not have the admin role, redirect them to the home page
+  if (sessionClaims?.metadata.role !== "admin") {
+    return redirect("/");
+  }
+
+  const userId = args.params.userId;
+  console.log('userIdss', userId);
 
   const allEntries = await prisma.notes.findMany({
     where: { userid: userId },
@@ -25,6 +31,7 @@ export async function loader({ params }) {
   // console.log('checkpoint')
   return { entries: notesFormatted, userId };
 };
+
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
