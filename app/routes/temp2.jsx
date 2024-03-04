@@ -1,6 +1,13 @@
+// Import necessary hooks and components from Remix and React
 import { useLoaderData, useActionData, Form, json, redirect } from "@remix-run/react";
+import { useState } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
 import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
 
+// Set the workerSrc for pdfjs
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+
+// Loader function to list contents of the bucket
 export const loader = async () => {
   try {
     const contents = await listContentsOfBucket();
@@ -11,9 +18,10 @@ export const loader = async () => {
   }
 };
 
+// Action function to handle file upload and preview actions
 export const action = async ({ request }) => {
   const formData = await request.formData();
-  const { _action} = Object.fromEntries(formData);
+  const { _action } = Object.fromEntries(formData);
 
   if (_action === "upload") {
     const file = formData.get("file");
@@ -27,7 +35,7 @@ export const action = async ({ request }) => {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         await uploadFileToS3(buffer, file.name);
-        return null; // Refresh or navigating to a success page would be ideal
+        return redirect('/'); // Redirect to refresh the page
       } catch (error) {
         console.error(error);
         return json({ error: error.message });
@@ -37,22 +45,83 @@ export const action = async ({ request }) => {
     }
   }
 
-  if (_action === "preview") {
-    const fileUrl = formData.get("fileUrl")
-    const googleDocsUrl = `https://docs.google.com/viewerng/viewer?url=${encodeURIComponent(fileUrl)}`;
-    // window.open(googleDocsUrl, "_blank");
-    return redirect(googleDocsUrl) // Open the PDF in a new tab using Google Docs Viewer
-  }
-
-  return null
+  // The preview action is handled client-side in this setup
+  return null;
 };
 
 export default function Upload() {
   const contents = useLoaderData();
   const actionData = useActionData();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPdfUrl, setCurrentPdfUrl] = useState('');
+  const [numPages, setNumPages] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  function onDocumentLoadSuccess({ numPages }) {
+    setNumPages(numPages);
+    setCurrentPage(1); // Reset to first page whenever a new document is loaded
+  }
+
+  const handlePdfClick = (fileUrl) => {
+    setCurrentPdfUrl(fileUrl);
+    setIsModalOpen(true);
+  };
+
+  const goToPrevPage = () => {
+    setCurrentPage(currentPage > 1 ? currentPage - 1 : 1);
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage(currentPage < numPages ? currentPage + 1 : numPages);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 flex justify-center items-center">
+      {/* Modal for PDF preview */}
+      {isModalOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white p-5 rounded-lg overflow-auto max-h-[80vh] max-w-[90vw]">
+      <div className="flex justify-between items-center mb-2">
+        <button
+          onClick={goToPrevPage}
+          className="bg-blue-500 text-white py-2 px-4 rounded"
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span>
+          Page {currentPage} of {numPages}
+        </span>
+        <button
+          onClick={goToNextPage}
+          className="bg-blue-500 text-white py-2 px-4 rounded"
+          disabled={currentPage === numPages}
+        >
+          Next
+        </button>
+        <button
+          onClick={() => setIsModalOpen(false)}
+          className="bg-red-500 text-white py-2 px-4 rounded"
+        >
+          Close
+        </button>
+      </div>
+      {/* PDF Document */}
+      <Document
+        file={currentPdfUrl}
+        onLoadSuccess={onDocumentLoadSuccess}
+        className="PDFDocument"
+      >
+        <Page
+          pageNumber={currentPage}
+          width={window.innerWidth > 768 ? 595 : window.innerWidth - 100} 
+          renderTextLayer={false}
+        />
+      </Document>
+    </div>
+  </div>
+)}
+
       <div className="text-center">
         <Form method="post" encType="multipart/form-data" className="mb-8">
           <input
@@ -70,11 +139,9 @@ export default function Upload() {
             Upload
           </button>
         </Form>
-        {actionData && (
+        {actionData && actionData.error && (
           <p className="text-white">
-            {actionData.error
-              ? actionData.error
-              : "File uploaded successfully."}
+            {actionData.error}
           </p>
         )}
         <div className="mt-8">
@@ -93,23 +160,12 @@ export default function Upload() {
                   contents.Contents.map((file, index) => (
                     <tr key={index}>
                       <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        {/* <a href="#" onClick={(e) => handlePdfClick(e, file.url)} className="text-blue-600 hover:text-blue-800 visited:text-purple-600">
+                        <button
+                          onClick={() => handlePdfClick(file.url)}
+                          className="text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                        >
                           {file.name}
-                        </a> */}
-                        <Form method="post" className="inline">
-                          <input
-                            type="hidden"
-                            name="fileUrl"
-                            value={file.url}
-                          />
-                          <button
-                            name="_action"
-                            value="preview"
-                            className="text-blue-600 hover:text-blue-800 visited:text-purple-600"
-                          >
-                            {file.name}
-                          </button>
-                        </Form>
+                        </button>
                       </td>
                     </tr>
                   ))
