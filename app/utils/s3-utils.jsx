@@ -24,16 +24,22 @@ const uploadFileToS3 = (file, fileName) => {
 };
 
 // Function to list the contents of an S3 bucket
-const listContentsOfBucket = async () => {
+// Function to list the contents of a user-specific folder in an S3 bucket
+const listContentsOfBucket = async (userId) => {
   const params = {
     Bucket: BUCKET_NAME,
+    Prefix: `${userId}/`, // Use userId as the folder name
   };
 
   try {
     const data = await s3.listObjectsV2(params).promise();
-    return data.Contents.map(item => {
+    // Filter out the folder itself if it's listed as an object
+    const contents = data.Contents.filter(item => item.Key !== `${userId}/`);
+    return contents.map(item => {
       const url = `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${item.Key}`;
-      return { name: item.Key, url };
+      // Extract the file name from the Key by removing the userId prefix
+      const name = item.Key.replace(`${userId}/`, '');
+      return { name, url };
     });
   } catch (error) {
     console.error("Error listing bucket contents:", error);

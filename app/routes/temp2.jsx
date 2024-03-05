@@ -3,25 +3,44 @@ import { useLoaderData, useActionData, Form, json, redirect } from "@remix-run/r
 import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
+import { getAuth } from "@clerk/remix/ssr.server";
+
 
 // Set the workerSrc for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 // Loader function to list contents of the bucket
-export const loader = async () => {
+export const loader = async (args) => {
+  // Check for user authentication
+  const { userId } = await getAuth(args);
+
+  // Redirect to sign-in page if no userId is found
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+
+  // Proceed with listing the contents of the bucket scoped to the user's folder
   try {
-    const contents = await listContentsOfBucket();
-    return json({ Contents: contents });
+    const contents = await listContentsOfBucket(userId); // Adjust this call as needed
+    // Include the userId in the response object along with the contents
+    return json({ userId, Contents: contents });
   } catch (error) {
     console.error(error);
-    return json({ error: error.message });
+    // This can help with debugging or client-side logic that may depend on the userId
+    return json({ userId, error: error.message });
   }
 };
 
-// Action function to handle file upload and preview actions
-export const action = async ({ request }) => {
+export async function action({ request }) {
   const formData = await request.formData();
+  const userId = formData.get("userId"); // Get userId from the form data
   const { _action } = Object.fromEntries(formData);
+
+  // Ensure there is a userId, otherwise handle error
+  if (!userId) {
+    // Handle error, e.g., return an error message
+    return json({ error: "User ID is missing." });
+  }
 
   if (_action === "upload") {
     const file = formData.get("file");
@@ -34,8 +53,9 @@ export const action = async ({ request }) => {
       try {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        await uploadFileToS3(buffer, file.name);
-        return redirect('/'); // Redirect to refresh the page
+        // Include the userId in the file path for a user-specific folder
+        await uploadFileToS3(buffer, `${userId}/${file.name}`);
+        return redirect('/'); // Redirect to refresh the page or to a specific URL
       } catch (error) {
         console.error(error);
         return json({ error: error.message });
@@ -45,9 +65,9 @@ export const action = async ({ request }) => {
     }
   }
 
-  // The preview action is handled client-side in this setup
+  // Handle other actions or return null if only upload is supported
   return null;
-};
+}
 
 export default function Upload() {
   const contents = useLoaderData();
@@ -55,6 +75,9 @@ export default function Upload() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPdfUrl, setCurrentPdfUrl] = useState('');
   const [numPages, setNumPages] = useState(null);
+  const { userId } = useLoaderData();
+  console.log(userId); // Log the userId to the console
+
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
@@ -103,6 +126,7 @@ export default function Upload() {
 
       <div className="text-center">
         <Form method="post" encType="multipart/form-data" className="mb-8">
+        <input type="hidden" name="userId" value={userId} />
           <input
             type="file"
             name="file"

@@ -18,7 +18,7 @@ export default function Index() {
         <h1 className="text-white text-sm md:text-lg lg:text-xl">A better way of keeping track of your notes</h1>
         <p className="text-white text-xs md:text-sm lg:text-base mb-4">Try our early beta and never lose track of your notes again!</p>
         <p id="cta">
-          <Link to="/notes" className="text-white bg-transparent border border-white rounded px-4 py-2 hover:bg-white hover:text-violet-500 mt-4">
+          <Link to="/temp2" className="text-white bg-transparent border border-white rounded px-4 py-2 hover:bg-white hover:text-violet-500 mt-4">
             Try Now!
           </Link>
         </p>
