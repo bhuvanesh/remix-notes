@@ -55,11 +55,9 @@ export default function Upload() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPdfUrl, setCurrentPdfUrl] = useState('');
   const [numPages, setNumPages] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
-    setCurrentPage(1); // Reset to first page whenever a new document is loaded
   }
 
   const handlePdfClick = (fileUrl) => {
@@ -67,38 +65,14 @@ export default function Upload() {
     setIsModalOpen(true);
   };
 
-  const goToPrevPage = () => {
-    setCurrentPage(currentPage > 1 ? currentPage - 1 : 1);
-  };
-
-  const goToNextPage = () => {
-    setCurrentPage(currentPage < numPages ? currentPage + 1 : numPages);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 flex justify-center items-center">
       {/* Modal for PDF preview */}
       {isModalOpen && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white p-5 rounded-lg overflow-auto max-h-[80vh] max-w-[90vw]">
-      <div className="flex justify-between items-center mb-2">
-        <button
-          onClick={goToPrevPage}
-          className="bg-blue-500 text-white py-2 px-4 rounded"
-          disabled={currentPage === 1}
-        >
-          Previous
-        </button>
-        <span>
-          Page {currentPage} of {numPages}
-        </span>
-        <button
-          onClick={goToNextPage}
-          className="bg-blue-500 text-white py-2 px-4 rounded"
-          disabled={currentPage === numPages}
-        >
-          Next
-        </button>
+    <div className="bg-white p-5 rounded-lg overflow-auto max-h-[90vh] max-w-[90vw]">
+      {/* Separate div for the close button with fixed positioning */}
+      <div className="absolute top-0 right-0 p-5">
         <button
           onClick={() => setIsModalOpen(false)}
           className="bg-red-500 text-white py-2 px-4 rounded"
@@ -106,18 +80,23 @@ export default function Upload() {
           Close
         </button>
       </div>
-      {/* PDF Document */}
-      <Document
-        file={currentPdfUrl}
-        onLoadSuccess={onDocumentLoadSuccess}
-        className="PDFDocument"
-      >
-        <Page
-          pageNumber={currentPage}
-          width={window.innerWidth > 768 ? 595 : window.innerWidth - 100} 
-          renderTextLayer={false}
-        />
-      </Document>
+      {/* PDF Document in its own div to allow for scrolling */}
+      <div className="pt-16"> {/* Adjust padding-top as needed */}
+        <Document
+          file={currentPdfUrl}
+          onLoadSuccess={onDocumentLoadSuccess}
+          className="PDFDocument"
+        >
+          {Array.from(new Array(numPages), (el, index) => (
+            <Page
+              key={`page_${index + 1}`}
+              pageNumber={index + 1}
+              width={window.innerWidth > 1400 ? 1080 : window.innerWidth - 100}
+              renderTextLayer={false}
+            />
+          ))}
+        </Document>
+      </div>
     </div>
   </div>
 )}
