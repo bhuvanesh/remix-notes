@@ -1,3 +1,5 @@
+import pkg from 'pg';
+const { Pool } = pkg;
 const config = {
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -6,4 +8,7 @@ const config = {
     }
 };
 
-export default config;
+const db = new Pool(config);
+
+export default db;
+

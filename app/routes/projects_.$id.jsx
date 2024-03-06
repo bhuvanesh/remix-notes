@@ -4,10 +4,7 @@ import { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
 import { getAuth } from "@clerk/remix/ssr.server";
-import pkg from 'pg';
-const { Pool } = pkg;
-import config from "./../utils/cdb.server";
-const pool = new Pool(config);
+import db from "./../utils/cdb.server";
 
 
 
@@ -28,7 +25,7 @@ export const loader = async (args) => {
 
   let documents = [];
   try {
-    const client = await pool.connect();
+    const client = await db.connect();
     const res = await client.query('SELECT id, doc_name FROM documents');
     documents = res.rows;
     client.release();
@@ -74,7 +71,7 @@ export async function action({ request }) {
         const projectid = formData.get("projectid");
 
         // Insert the file details into the database
-        const client = await pool.connect();
+        const client = await db.connect();
         await client.query(
           'INSERT INTO files (client_code, project_code, document_code, status_code, file_path, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
           [userId, projectid, documentId, 1, objectUrl]

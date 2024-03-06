@@ -2,10 +2,7 @@ import { Link, useLoaderData } from '@remix-run/react';
 import { UserButton } from "@clerk/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { redirect } from "@remix-run/node";
-import pkg from 'pg';
-const { Pool } = pkg;
-import config from "./../utils/cdb.server";
-const pool = new Pool(config);
+import db from "./../utils/cdb.server";
  
 export const loader = async (args) => {
   const { userId } = await getAuth(args);
@@ -14,7 +11,7 @@ export const loader = async (args) => {
   }
 
   // Fetch project IDs and names from the database
-  const { rows } = await pool.query('SELECT id, project_name FROM projects');
+  const { rows } = await db.query('SELECT id, project_name FROM projects');
   const projects = rows.map(row => ({ id: row.id, name: row.project_name }));
 
   // Pass project data to the component
