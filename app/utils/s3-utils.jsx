@@ -20,7 +20,11 @@ const uploadFileToS3 = (file, fileName) => {
     Body: file,
   };
 
-  return s3.upload(params).promise();
+  return s3.upload(params).promise()
+    .then(data => {
+      // The data.Location contains the Object URL of the uploaded file
+      return data.Location;
+    });
 };
 
 // Function to list the contents of an S3 bucket
