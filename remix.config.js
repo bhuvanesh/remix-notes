@@ -21,6 +21,8 @@ export default {
       buffer: true,
       zlib: true,
       url: true,
+      tailwind: true,
+      postcss: true,
     },
   },
 };

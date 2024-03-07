@@ -1,10 +1,12 @@
 // Import necessary hooks and components from Remix and React
-import { useLoaderData, useActionData, Form, json, redirect } from "@remix-run/react";
-import { useState } from 'react';
+import { useLoaderData, useActionData, Form, json, redirect,Link } from "@remix-run/react";
+import { useState,useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
 import { getAuth } from "@clerk/remix/ssr.server";
 import db from "./../utils/cdb.server";
+import { toast } from "sonner"
+
 
 
 
@@ -115,7 +117,8 @@ export async function action({ request }) {
         `, [userId, projectid, documentId, 1, objectUrl]);
 
         client.release();
-        console.log('Uploaded file URL:', objectUrl);
+return json({ success: "File uploaded successfully." });
+       
       } catch (error) {
         console.error(error);
         return json({ error: error.message });
@@ -125,7 +128,6 @@ export async function action({ request }) {
     }
   }
 
-  return redirect(`/`);
 }
 
 
@@ -136,6 +138,9 @@ export default function Upload() {
   const [currentPdfUrl, setCurrentPdfUrl] = useState('');
   const [numPages, setNumPages] = useState(null);
   const { userId, projectid,projectName,documents } = useLoaderData();
+  const [fileInputValue, setFileInputValue] = useState('');
+
+  
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
@@ -146,9 +151,26 @@ export default function Upload() {
     setIsModalOpen(true);
   };
 
+  useEffect(() => {
+    if (actionData) {
+      if (actionData.error) {
+        toast.error(actionData.error); // Display error message in a toast
+      } else if (actionData.success) {
+        toast.success(actionData.success); // Display success message in a toast
+        setFileInputValue(''); // Reset the file input value
+      }
+    }
+  }, [actionData]);
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 flex flex-col justify-center items-center">
-      <div className="text-center mb-8">
+      {/* Back navigation link */}
+      <div className="self-start absolute top-0 left-0 p-4">
+      <Link to="/" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+  ← Back to Home
+</Link>
+
+      </div>      <div className="text-center mb-8">
         <h1 className="text-3xl text-white">{projectName}</h1>
         <h2 className="text-xl text-white">Project ID: {projectid}</h2>
       </div>
@@ -198,20 +220,22 @@ export default function Upload() {
             ))}
           </select>
           <input
-            type="file"
-            name="file"
-            accept="application/pdf"
-            className="mb-4"
-          />
-          <button
-            type="submit"
-            name="_action"
-            value="upload"
-            className="bg-purple-700 text-white py-2 px-4 rounded hover:bg-purple-800 transition ease-in-out duration-150"
-          >
-            Upload
-          </button>
-        </Form>
+        type="file"
+        name="file"
+        accept="application/pdf"
+        className="mb-4"
+        value={fileInputValue} 
+        onChange={(e) => setFileInputValue(e.target.value)} 
+      />
+      <button
+        type="submit"
+        name="_action"
+        value="upload"
+        className="bg-purple-700 text-white py-2 px-4 rounded hover:bg-purple-800 transition ease-in-out duration-150"
+      >
+        Upload
+      </button>
+    </Form>
         {actionData && actionData.error && (
           <p className="text-white">
             {actionData.error}

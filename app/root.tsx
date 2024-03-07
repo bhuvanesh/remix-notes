@@ -11,6 +11,8 @@ import {
 import styles from "~/tailwind.css"
 import { rootAuthLoader } from "@clerk/remix/ssr.server";
 import { ClerkApp , ClerkErrorBoundary} from "@clerk/remix";
+import { Toaster } from "./components/ui/sonner"
+
 
 
 
@@ -34,6 +36,7 @@ function App() {
       </head>
       <body>
         <Outlet />
+        <Toaster />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
