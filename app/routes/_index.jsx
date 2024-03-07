@@ -10,8 +10,8 @@ export const loader = async (args) => {
     return redirect("/sign-in");
   }
 
-  // Fetch project IDs and names from the database
-  const { rows } = await db.query('SELECT id, project_name FROM projects');
+  // Fetch project IDs and names from the database where client_code matches the user_id
+  const { rows } = await db.query('SELECT id, project_name FROM projects WHERE client_code = $1', [userId]);
   const projects = rows.map(row => ({ id: row.id, name: row.project_name }));
 
   // Pass project data to the component
