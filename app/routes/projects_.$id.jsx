@@ -16,39 +16,63 @@ export const loader = async (args) => {
   // Check for user authentication
   const { userId } = await getAuth(args);
   const [projectName, projectid] = args.params.id.split('-');
-
-
-
   if (!userId) {
     return redirect("/sign-in");
   }
 
   let documents = [];
+  let formattedDocuments = [];
   try {
     const client = await db.connect();
-    const res = await client.query('SELECT id, doc_name FROM documents');
-    documents = res.rows;
+    // Execute the additional SQL query to get the document names and ids
+    const resDocs = await client.query('SELECT id, doc_name FROM documents');
+    documents = resDocs.rows;
+
+    // Execute the main SQL query to get the required document details
+    const resFiles = await client.query(`
+      SELECT
+        f.file_path,
+        f.document_code,
+        d.doc_name,
+        d.id
+      FROM
+        public.files f
+      JOIN
+        public.documents d ON f.document_code = d.id
+      WHERE
+        f.is_latest = true
+        AND f.project_code = $1
+        AND f.client_code = $2;
+    `, [projectid, userId]);
+
+    // Format the main query results to match the desired structure
+    formattedDocuments = resFiles.rows.map(doc => ({
+      name: doc.doc_name,
+      url: doc.file_path,
+      key: doc.id
+    }));
     client.release();
   } catch (err) {
     console.error('Error fetching documents', err);
     documents = [];
+    formattedDocuments = [];
   }
-  // Proceed with listing the contents of the bucket scoped to the user's folder
-  try {
-    const contents = await listContentsOfBucket(userId); // Adjust this call as needed
-    // Include the userId in the response object along with the contents
-    return json({ userId, Contents: contents, projectid, projectName, documents});
-  } catch (error) {
-    console.error(error);
-    // This can help with debugging or client-side logic that may depend on the userId
-    return json({ userId,projectid, error: error.message, projectName,documents});
-  }
+
+  // Return the formatted documents in the response
+  return json({
+    userId,
+    Contents: formattedDocuments,
+    projectid,
+    projectName,
+    documents
+  });
 };
 
 export async function action({ request }) {
   const formData = await request.formData();
   const userId = formData.get("userId");
   const documentId = formData.get("documentId");
+  const projectid = formData.get("projectid");
   const { _action } = Object.fromEntries(formData);
 
   if (!userId) {
@@ -57,27 +81,40 @@ export async function action({ request }) {
 
   if (_action === "upload") {
     const file = formData.get("file");
-
     if (file && file.type !== "application/pdf") {
       return json({ error: "Please upload only PDF files." });
     }
-
     if (file && file.size > 0) {
       try {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const filePath = `${userId}/${file.name}`;
         const objectUrl = await uploadFileToS3(buffer, filePath);
-        const projectid = formData.get("projectid");
 
-        // Insert the file details into the database
         const client = await db.connect();
-        await client.query(
-          'INSERT INTO files (client_code, project_code, document_code, status_code, file_path, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
-          [userId, projectid, documentId, 1, objectUrl]
-        );
-        client.release();
 
+        // Check for existing entry with is_latest = true
+        const existingFilesRes = await client.query(`
+          SELECT id FROM files
+          WHERE project_code = $1 AND client_code = $2 AND document_code = $3 AND is_latest = true
+        `, [projectid, userId, documentId]);
+
+        // If an existing entry is found, set is_latest to false
+        if (existingFilesRes.rows.length > 0) {
+          await client.query(`
+            UPDATE files
+            SET is_latest = false
+            WHERE id = $1
+          `, [existingFilesRes.rows[0].id]);
+        }
+
+        // Insert the new file details into the database
+        await client.query(`
+          INSERT INTO files (client_code, project_code, document_code, status_code, file_path, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+        `, [userId, projectid, documentId, 1, objectUrl]);
+
+        client.release();
         console.log('Uploaded file URL:', objectUrl);
       } catch (error) {
         console.error(error);
@@ -99,15 +136,12 @@ export default function Upload() {
   const [currentPdfUrl, setCurrentPdfUrl] = useState('');
   const [numPages, setNumPages] = useState(null);
   const { userId, projectid,projectName,documents } = useLoaderData();
-  console.log(userId); // Log the userId to the console
-
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
   }
 
   const handlePdfClick = (fileUrl) => {
-    console.log('hello',fileUrl);
     setCurrentPdfUrl(fileUrl);
     setIsModalOpen(true);
   };
