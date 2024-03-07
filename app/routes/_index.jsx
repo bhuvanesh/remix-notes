@@ -3,20 +3,45 @@ import { UserButton } from "@clerk/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { redirect } from "@remix-run/node";
 import db from "./../utils/cdb.server";
- 
+import { Progress } from "./../components/ui/progress";
+
 export const loader = async (args) => {
   const { userId } = await getAuth(args);
   if (!userId) {
     return redirect("/sign-in");
   }
 
-  // Fetch project IDs and names from the database where client_code matches the user_id
-  const { rows } = await db.query('SELECT id, project_name FROM projects WHERE client_code = $1', [userId]);
-  const projects = rows.map(row => ({ id: row.id, name: row.project_name }));
+  // Fetch project IDs, names, and percentage of latest documents from the database
+  const query = `
+    WITH project_latest_counts AS (
+      SELECT 
+        f.project_code,
+        p.project_name,
+        COUNT(*) AS latest_doc_count,
+        (SELECT COUNT(DISTINCT id) FROM documents) AS total_doc_count
+      FROM files f
+      JOIN projects p ON f.project_code = p.id
+      WHERE f.is_latest = true
+        AND p.client_code = $1
+      GROUP BY f.project_code, p.project_name
+    )
+    SELECT 
+      project_code AS id,
+      project_name AS name,
+      ROUND((latest_doc_count * 100.0) / total_doc_count, 2) AS percentage 
+    FROM project_latest_counts;
+  `;
+  const { rows } = await db.query(query, [userId]);
+  const projects = rows.map(row => ({
+    id: row.id,
+    name: row.name,
+    percentage: row.percentage
+  }));
 
   // Pass project data to the component
   return { projects };
 };
+
 export default function Index() {
   const { projects } = useLoaderData();
 
@@ -29,11 +54,12 @@ export default function Index() {
         {projects.length > 0 ? (
           <div className="flex flex-col gap-4">
             {projects.map((project, index) => (
-              <p id={`cta-${index}`} key={project.id}>
-                <Link to={`/projects/${project.name}-${project.id}`} className="text-white bg-transparent border border-white rounded px-4 py-2 hover:bg-white hover:text-violet-500 mt-4">
+              <div key={project.id} className="w-full">
+                <Link to={`/projects/${project.name}-${project.id}`} className="text-white bg-transparent border border-white rounded px-4 py-2 hover:bg-white hover:text-violet-500 mt-4 block text-center">
                   {project.name}
                 </Link>
-              </p>
+                <Progress value={project.percentage} />
+              </div>
             ))}
           </div>
         ) : (
@@ -42,4 +68,4 @@ export default function Index() {
       </div>
     </main>
   );
-};
+}
