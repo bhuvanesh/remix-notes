@@ -1,11 +1,14 @@
 // Import necessary hooks and components from Remix and React
-import { useLoaderData, useActionData, Form, json, redirect,Link } from "@remix-run/react";
+import { useLoaderData, useActionData, Form, json, redirect,Link,useNavigation } from "@remix-run/react";
 import { useState,useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
 import { getAuth } from "@clerk/remix/ssr.server";
 import db from "./../utils/cdb.server";
-import { toast } from "sonner"
+import { toast } from "sonner";
+import {Button} from "../components/ui/button";
+import { Loader2 } from "lucide-react";
+
 
 
 
@@ -140,6 +143,8 @@ export default function Upload() {
   const { userId, projectid,projectName,documents } = useLoaderData();
   const [fileInputValue, setFileInputValue] = useState('');
 
+  const transition = useNavigation();
+
   
 
   function onDocumentLoadSuccess({ numPages }) {
@@ -227,14 +232,16 @@ export default function Upload() {
         value={fileInputValue} 
         onChange={(e) => setFileInputValue(e.target.value)} 
       />
-      <button
-        type="submit"
-        name="_action"
-        value="upload"
-        className="bg-purple-700 text-white py-2 px-4 rounded hover:bg-purple-800 transition ease-in-out duration-150"
-      >
-        Upload
-      </button>
+       <Button type="submit" name="_action" value="upload" disabled={transition.state === "submitting"}>
+        {transition.state === "submitting" ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Uploadng...
+          </>
+        ) : (
+          "Upload"
+        )}
+      </Button>
     </Form>
         {actionData && actionData.error && (
           <p className="text-white">

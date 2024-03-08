@@ -6,10 +6,10 @@ import db from "./../utils/cdb.server";
 import { Progress } from "./../components/ui/progress";
 
 export const loader = async (args) => {
-  const { userId } = await getAuth(args);
-  if (!userId) {
-    return redirect("/sign-in");
-  }
+
+    const userId = args.params.id;
+    console.log('userIdss', userId);
+
 
   // Fetch project IDs, names, and percentage of latest documents from the database
   const query = `
