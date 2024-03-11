@@ -115,9 +115,9 @@ export async function action({ request }) {
 
         // Insert the new file details into the database
         await client.query(`
-          INSERT INTO files (client_code, project_code, document_code, status_code, file_path, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-        `, [userId, projectid, documentId, 1, objectUrl]);
+          INSERT INTO files (client_code, project_code, document_code, file_path, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, NOW(), NOW())
+        `, [userId, projectid, documentId, objectUrl]);
 
         client.release();
 return json({ success: "File uploaded successfully." });
