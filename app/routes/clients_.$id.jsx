@@ -85,13 +85,13 @@ export default function Index() {
           <div className="flex flex-col gap-4">
             {projects.map((project, index) => (
               <div key={project.id} className="w-full">
-                <Link
-                  to={`/projects/${project.name}-${project.id}`}
-                  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500"
-                >
-                  <div className="font-bold">{project.name}</div>
-                  <Progress value={project.percentage} />
-                </Link>
+<Link
+  to={`/clients/projects/${project.name}-${project.id}-${userId}`}
+  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 min-w-[300px]"
+>
+  <div className="font-bold">{project.name}</div>
+  <Progress value={project.percentage} />
+</Link>
               </div>
             ))}
           </div>

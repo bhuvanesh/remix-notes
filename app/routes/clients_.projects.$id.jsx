@@ -4,7 +4,7 @@ import { useState,useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
 import { getAuth } from "@clerk/remix/ssr.server";
-import db from "./../utils/cdb.server";
+import db from "../utils/cdb.server";
 import { toast } from "sonner";
 import {Button} from "../components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -18,12 +18,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 // Loader function to list contents of the bucket
 export const loader = async (args) => {
-  // Check for user authentication
-  const { userId } = await getAuth(args);
-  const [projectName, projectid] = args.params.id.split('-');
-  if (!userId) {
-    return redirect("/sign-in");
-  }
+  const [projectName, projectid, userId] = args.params.id.split('-');
+  console.log('userId', userId);
+
 
   let documents = [];
   let formattedDocuments = [];
@@ -171,7 +168,7 @@ export default function Upload() {
     <div className="min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 flex flex-col justify-center items-center">
       {/* Back navigation link */}
       <div className="self-start absolute top-0 left-0 p-4">
-      <Link to="/" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+      <Link to={`/clients/${userId}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
   ← Back
 </Link>
 
