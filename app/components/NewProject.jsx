@@ -51,6 +51,20 @@ export default function ProjectForm({ userId }) {
               ></textarea>
             </label>
           </div>
+          {/* Dropdown for project type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Project Type
+              <select
+                name="projectType"
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="wind">Wind</option>
+                <option value="solar">Solar</option>
+              </select>
+            </label>
+          </div>
           <button
             type="submit"
             disabled={transition.state === "submitting"}

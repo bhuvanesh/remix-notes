@@ -75,7 +75,6 @@ export default function Index() {
 
 
   return (
-    
     <main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center h-screen relative">
       <div className="self-start absolute top-0 left-0 p-4">
         <Link to={`/clients`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
@@ -91,13 +90,16 @@ export default function Index() {
           <div className="flex flex-col gap-4">
             {projects.map((project, index) => (
               <div key={project.id} className="w-full">
-<Link
-  to={`/clients/projects/${project.name.replace(/-/g, '')}-${project.id}-${userId}`}
-  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 min-w-[300px]"
->
-  <div className="font-bold">{project.name.replace(/-/g, '')}</div>
-  <Progress value={project.percentage} />
-</Link>
+                <Link
+                  to={`/clients/projects/${project.name.replace(/-/g, '')}-${project.id}-${userId}`}
+                  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 min-w-[300px]"
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="font-bold">{project.name.replace(/-/g, '')}</div>
+                    <div>{project.percentage}%</div>
+                  </div>
+                  <Progress value={project.percentage} />
+                </Link>
               </div>
             ))}
           </div>
@@ -113,7 +115,8 @@ export async function action({ request }) {
   const formData = await request.formData();
   const projectName = formData.get("projectName");
   const projectDescription = formData.get("projectDescription");
-  const clientCode = formData.get("userId"); 
+  const clientCode = formData.get("userId");
+  const projectType = formData.get("projectType");
 
   try {
     // Fetch the highest current id in the projects table
@@ -128,12 +131,12 @@ export async function action({ request }) {
     // Increment the nextId by 1
     nextId += 1;
 
-    // Insert the new project with the incremented id
+    // Insert the new project with the incremented id and project type
     const insertResult = await db.query(
-      `INSERT INTO public.projects (id, project_name, client_code, description, created_at)
-       VALUES ($1, $2, $3, $4, NOW())
+      `INSERT INTO public.projects (id, project_name, client_code, description, created_at, type)
+       VALUES ($1, $2, $3, $4, NOW(), $5)
        RETURNING id;`,
-      [nextId, projectName, clientCode, projectDescription]
+      [nextId, projectName, clientCode, projectDescription, projectType]
     );
 
     console.log('Inserted project with ID:', insertResult.rows[0].id);

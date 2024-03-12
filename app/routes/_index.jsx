@@ -67,7 +67,10 @@ export default function Index() {
                   to={`/projects/${project.name.replace(/-/g, '')}-${project.id}`}
                   className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 min-w-[300px]"
                 >
-                  <div className="font-bold">{project.name.replace(/-/g, '')}</div>
+                  <div className="flex justify-between items-center">
+                    <div className="font-bold">{project.name.replace(/-/g, '')}</div>
+                    <div>{project.percentage}%</div>
+                  </div>
                   <Progress value={project.percentage} />
                 </Link>
               </div>
