@@ -1,22 +1,17 @@
-// Import necessary hooks and components from Remix and React
-import { useLoaderData, useActionData, Form, json, redirect,Link,useNavigation } from "@remix-run/react";
-import { useState,useEffect } from 'react';
+import { useLoaderData, useActionData, Form, json, redirect, Link, useNavigation } from "@remix-run/react";
+import { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/solid';
 import { uploadFileToS3, listContentsOfBucket } from "../utils/s3-utils";
 import { getAuth } from "@clerk/remix/ssr.server";
 import db from "./../utils/cdb.server";
 import { toast } from "sonner";
-import {Button} from "../components/ui/button";
+import { Button } from "../components/ui/button";
 import { Loader2 } from "lucide-react";
-
-
-
-
 
 // Set the workerSrc for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-// Loader function to list contents of the bucket
 export const loader = async (args) => {
   // Check for user authentication
   const { userId } = await getAuth(args);
@@ -39,7 +34,8 @@ export const loader = async (args) => {
         f.file_path,
         f.document_code,
         d.doc_name,
-        d.id
+        d.id,
+        f.status_code
       FROM
         public.files f
       JOIN
@@ -54,7 +50,8 @@ export const loader = async (args) => {
     formattedDocuments = resFiles.rows.map(doc => ({
       name: doc.doc_name,
       url: doc.file_path,
-      key: doc.id
+      key: doc.id,
+      statusCode: doc.status_code
     }));
     client.release();
   } catch (err) {
@@ -72,7 +69,6 @@ export const loader = async (args) => {
     documents
   });
 };
-
 export async function action({ request }) {
   const formData = await request.formData();
   const userId = formData.get("userId");
@@ -252,35 +248,47 @@ export default function Upload() {
           <h2 className="text-lg text-white mb-4">Bucket Contents:</h2>
           <div className="inline-block min-w-full overflow-hidden align-middle bg-white shadow-md rounded-lg">
             <table className="min-w-full">
-              <thead>
-                <tr>
-                  <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs leading-4 font-semibold text-gray-600 uppercase tracking-wider">
-                    File Name
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white">
-                {contents?.Contents && contents.Contents.length > 0 ? (
-                  contents.Contents.map((file, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                        <button
-                          onClick={() => handlePdfClick(file.url)}
-                          className="text-blue-600 hover:text-blue-800 visited:text-purple-600"
-                        >
-                          {file.name}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                      No files found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
+            <thead>
+  <tr>
+    <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs leading-4 font-semibold text-gray-600 uppercase tracking-wider">
+      File Name
+    </th>
+    <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs leading-4 font-semibold text-gray-600 uppercase tracking-wider">
+      Status
+    </th>
+  </tr>
+</thead>
+<tbody className="bg-white">
+  {contents?.Contents && contents.Contents.length > 0 ? (
+    contents.Contents.map((file, index) => (
+      <tr key={index}>
+        <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-left">
+          <button
+            onClick={() => handlePdfClick(file.url)}
+            className="text-blue-600 hover:text-blue-800 visited:text-purple-600"
+          >
+            {file.name}
+          </button>
+        </td>
+        <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+          {file.statusCode === true ? (
+            <CheckCircleIcon className="h-6 w-6 text-green-500" />
+          ) : file.statusCode === false ? (
+            <XCircleIcon className="h-6 w-6 text-red-500" />
+          ) : (
+            <ClockIcon className="h-6 w-6 text-gray-500" />
+          )}
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-left" colSpan="2">
+        No files found.
+      </td>
+    </tr>
+  )}
+</tbody>
             </table>
           </div>
         </div>

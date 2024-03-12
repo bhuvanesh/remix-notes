@@ -22,10 +22,10 @@ export const loader = async (args) => {
     SELECT 
         p.id AS project_code,
         p.project_name,
-        COUNT(f.project_code) AS latest_doc_count -- Count only non-null project_code values from files
+        COUNT(CASE WHEN f.is_latest = true AND f.status_code = true THEN f.project_code END) AS latest_doc_count 
     FROM 
         projects p
-        LEFT JOIN files f ON p.id = f.project_code AND f.is_latest = true
+        LEFT JOIN files f ON p.id = f.project_code 
     WHERE 
         p.client_code = $1
     GROUP BY 

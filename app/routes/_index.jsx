@@ -17,10 +17,10 @@ export const loader = async (args) => {
     SELECT 
         p.id AS project_code,
         p.project_name,
-        COUNT(f.project_code) AS latest_doc_count -- Count only non-null project_code values from files
+        COUNT(CASE WHEN f.is_latest = true AND f.status_code = true THEN f.project_code END) AS latest_doc_count 
     FROM 
         projects p
-        LEFT JOIN files f ON p.id = f.project_code AND f.is_latest = true
+        LEFT JOIN files f ON p.id = f.project_code 
     WHERE 
         p.client_code = $1
     GROUP BY 
@@ -64,10 +64,10 @@ export default function Index() {
             {projects.map((project, index) => (
               <div key={project.id} className="w-full">
                 <Link
-                  to={`/projects/${project.name}-${project.id}`}
-                  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500"
+                  to={`/projects/${project.name.replace(/-/g, '')}-${project.id}`}
+                  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 min-w-[300px]"
                 >
-                  <div className="font-bold">{project.name}</div>
+                  <div className="font-bold">{project.name.replace(/-/g, '')}</div>
                   <Progress value={project.percentage} />
                 </Link>
               </div>

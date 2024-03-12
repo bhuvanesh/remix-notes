@@ -14,7 +14,6 @@ import { Loader2 } from "lucide-react";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 // Loader function to list contents of the bucket
-// Loader function to list contents of the bucket
 export const loader = async (args) => {
   const [projectName, projectid, userId] = args.params.id.split('-');
   console.log('userId', userId);
@@ -80,10 +79,12 @@ export async function action({ request }) {
   try {
     const client = await db.connect();
 
-    // Update the status_code in the files table based on the action
-    let statusCode = action;
-    if (action === 'return') {
-      statusCode = null;
+    // Initialize statusCode as null for the 'return' action
+    let statusCode = null; // Default to null for 'return' action
+    if (action === 'approve') {
+      statusCode = true; // Set to true for 'approve'
+    } else if (action === 'reject') {
+      statusCode = false; // Set to false for 'reject'
     }
 
     await client.query(`
@@ -223,13 +224,13 @@ export default function Upload() {
                             name="action"
                             value="approve"
                             className={`mr-2 ${
-                              file.statusCode === 'approve' ? 'opacity-50 cursor-not-allowed' : ''
+                              file.statusCode === true ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
-                            disabled={file.statusCode === 'approve'}
+                            disabled={file.statusCode === true}
                           >
                             <CheckCircleIcon
                               className={`h-6 w-6 ${
-                                file.statusCode === 'approve' ? 'text-gray-400' : 'text-green-500'
+                                file.statusCode === true ? 'text-gray-400' : 'text-green-500'
                               }`}
                             />
                           </button>
@@ -238,13 +239,13 @@ export default function Upload() {
                             name="action"
                             value="reject"
                             className={`mr-2 ${
-                              file.statusCode === 'reject' ? 'opacity-50 cursor-not-allowed' : ''
+                              file.statusCode === false ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
-                            disabled={file.statusCode === 'reject'}
+                            disabled={file.statusCode === false}
                           >
                             <XCircleIcon
                               className={`h-6 w-6 ${
-                                file.statusCode === 'reject' ? 'text-gray-400' : 'text-red-500'
+                                file.statusCode === false ? 'text-gray-400' : 'text-red-500'
                               }`}
                             />
                           </button>
