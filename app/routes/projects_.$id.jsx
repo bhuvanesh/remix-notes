@@ -271,13 +271,24 @@ export default function Upload() {
           </button>
         </td>
         <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-          {file.statusCode === true ? (
-            <CheckCircleIcon className="h-6 w-6 text-green-500" />
-          ) : file.statusCode === false ? (
-            <XCircleIcon className="h-6 w-6 text-red-500" />
-          ) : (
-            <ClockIcon className="h-6 w-6 text-gray-500" />
-          )}
+          <div className="flex items-center">
+            {file.statusCode === true ? (
+              <>
+                <CheckCircleIcon className="h-6 w-6 text-green-500 mr-1" />
+                <span className="text-sm text-green-500">Approved</span>
+              </>
+            ) : file.statusCode === false ? (
+              <>
+                <XCircleIcon className="h-6 w-6 text-red-500 mr-1" />
+                <span className="text-sm text-red-500">Rejected</span>
+              </>
+            ) : (
+              <>
+                <ClockIcon className="h-6 w-6 text-gray-500 mr-1" />
+                <span className="text-sm text-gray-500">Pending</span>
+              </>
+            )}
+          </div>
         </td>
       </tr>
     ))
