@@ -213,13 +213,16 @@ export default function Upload() {
         <Form method="post" encType="multipart/form-data" className="mb-8">
         <input type="hidden" name="userId" value={userId} />
         <input type="hidden" name="projectid" value={projectid} />
-        <select name="documentId" className="mb-4">
-            {documents.map((doc) => (
-              <option key={doc.id} value={doc.id}>
-                {doc.doc_name}
-              </option>
-            ))}
-          </select>
+<select
+  name="documentId"
+  className="w-32 h-8 text-sm truncate bg-white border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 -ml-1"
+>
+  {documents.map((doc) => (
+    <option key={doc.id} value={doc.id} className="truncate">
+      {doc.doc_name}
+    </option>
+  ))}
+</select>
           <input
         type="file"
         name="file"
