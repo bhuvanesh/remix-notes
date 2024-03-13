@@ -249,7 +249,8 @@ export default function Upload() {
         )}
         <div className="mt-8">
           <h2 className="text-lg text-white mb-4">Bucket Contents:</h2>
-          <div className="inline-block min-w-full overflow-hidden align-middle bg-white shadow-md rounded-lg">
+          <div className="max-w-md">
+  <div className="inline-block min-w-full overflow-hidden align-middle bg-white shadow-md rounded-lg">
             <table className="min-w-full">
             <thead>
   <tr>
@@ -304,6 +305,7 @@ export default function Upload() {
   )}
 </tbody>
             </table>
+          </div>
           </div>
         </div>
       </div>
