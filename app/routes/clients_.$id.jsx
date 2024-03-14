@@ -11,6 +11,14 @@ import { toast } from "sonner";
 
 
 export const loader = async (args) => {
+  const { sessionClaims } = await getAuth(args);
+
+  // If the user does not have the admin role, redirect them to the home page
+  if (sessionClaims?.metadata.role !== "admin") {
+      return redirect("/");
+    console.log(sessionClaims?.metadata.role);
+    
+  }
 
     const userId = args.params.id;
     console.log('userIdss', userId);

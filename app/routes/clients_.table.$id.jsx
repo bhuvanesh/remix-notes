@@ -3,13 +3,19 @@ import { redirect } from "@remix-run/node";
 import db from "./../utils/cdb.server";
 import { CheckCircleIcon, XCircleIcon, ClockIcon, NoSymbolIcon } from '@heroicons/react/24/solid';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "~/components/ui/table";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData,Link } from "@remix-run/react";
 
 export const loader = async (args) => {
-  const { userId } = await getAuth(args);
-  if (!userId) {
-    return redirect("/sign-in");
+  const { sessionClaims } = await getAuth(args);
+
+  // If the user does not have the admin role, redirect them to the home page
+  if (sessionClaims?.metadata.role !== "admin") {
+      return redirect("/");
+    console.log(sessionClaims?.metadata.role);
+    
   }
+  const userId = args.params.id;
+
 
   const data = await db.query(`
     SELECT
@@ -33,11 +39,11 @@ export const loader = async (args) => {
       f.is_latest IS TRUE OR f.is_latest IS NULL;
   `, [userId]);
 
-  return data.rows;
+  return { userId, data: data.rows };
 };
 
 export default function DocumentStatus() {
-  const data = useLoaderData();
+  const { userId, data } = useLoaderData();
 
   const projectNames = [...new Set(data.map((row) => row.project_name))];
 
@@ -52,21 +58,28 @@ export default function DocumentStatus() {
   return (
     <main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen">
       <div className="bg-white p-8 rounded shadow max-w-7xl mx-auto">
+        <div className="self-start absolute top-0 left-0 p-4">
+          <Link to={`/clients/${userId}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+            ← Back
+          </Link>
+        </div>
         <h1 className="text-2xl font-bold mb-4">Document Status</h1>
         <div className="overflow-x-auto overflow-y-auto max-h-96">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="sticky left-0 bg-white">Document Name</TableHead>
+                <TableHead className="sticky left-0 bg-white z-10 min-w-[300px]">Document Name</TableHead>
                 {projectNames.map((projectName) => (
-                  <TableHead key={projectName} className="sticky top-0 bg-white">{projectName}</TableHead>
+                  <TableHead key={projectName} className="sticky top-0 bg-white">
+                    {projectName}
+                  </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody>
               {Object.entries(documentStatuses).map(([documentName, statuses]) => (
                 <TableRow key={documentName}>
-                  <TableCell className="sticky left-0 bg-white">{documentName}</TableCell>
+                  <TableCell className="sticky left-0 bg-white z-10 min-w-[300px]">{documentName}</TableCell>
                   {projectNames.map((projectName) => {
                     const status = statuses[projectName];
                     let icon = null;
@@ -79,9 +92,7 @@ export default function DocumentStatus() {
                     } else {
                       icon = <NoSymbolIcon className="h-5 w-5 text-gray-500" />;
                     }
-                    return (
-                      <TableCell key={projectName}>{icon}</TableCell>
-                    );
+                    return <TableCell key={projectName}>{icon}</TableCell>;
                   })}
                 </TableRow>
               ))}

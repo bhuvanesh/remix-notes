@@ -16,7 +16,7 @@ export const loader = async (args) => {
     console.log(sessionClaims?.metadata.role);
     
   }
-  const client = createClerkClient({ secretKey: "sk_test_egdKQtEMkEIe4T2YwdvevFFPWvpHqkjZdQ3MxyiW3i" });
+  const client = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
   const userList = await client.users.getUserList();
   return json(userList);
 }

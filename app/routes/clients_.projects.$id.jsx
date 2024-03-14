@@ -15,6 +15,14 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 // Loader function to list contents of the bucket
 export const loader = async (args) => {
+  const { sessionClaims } = await getAuth(args);
+
+  // If the user does not have the admin role, redirect them to the home page
+  if (sessionClaims?.metadata.role !== "admin") {
+      return redirect("/");
+    console.log(sessionClaims?.metadata.role);
+    
+  }
   const [projectName, projectid, userId] = args.params.id.split('-');
   console.log('userId', userId);
 
@@ -187,15 +195,15 @@ export default function Upload() {
       )}
   
       <div className="text-center">
-        <h2 className="text-lg text-white mb-4">Bucket Contents:</h2>
+        {/* <h2 className="text-lg text-white mb-4">Bucket Contents:</h2> */}
         <div className="inline-block min-w-full overflow-hidden align-middle bg-white shadow-md rounded-lg max-h-96 overflow-y-auto">
           <table className="min-w-full">
             <thead>
               <tr>
-                <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs leading-4 font-semibold text-gray-600 uppercase tracking-wider sticky top-0">
+                <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 font-bold text-gray-600 uppercase tracking-wider sticky top-0">
                   File Name
                 </th>
-                <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs leading-4 font-semibold text-gray-600 uppercase tracking-wider sticky top-0">
+                <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 font-bold text-gray-600 uppercase tracking-wider sticky top-0">
                   Status
                 </th>
               </tr>
@@ -204,7 +212,7 @@ export default function Upload() {
               {contents?.Contents && contents.Contents.length > 0 ? (
                 contents.Contents.map((file, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 flex justify-start">
                       <button
                         onClick={() => handlePdfClick(file.url)}
                         className="text-blue-600 hover:text-blue-800 visited:text-purple-600"

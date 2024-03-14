@@ -7,7 +7,13 @@ import { Progress } from "./../components/ui/progress";
 
 
 export const loader = async (args) => {
-  const { userId } = await getAuth(args);
+  const { userId, sessionClaims } = await getAuth(args);
+
+  // If the user does not have the admin role, redirect them to the home page
+  if (sessionClaims?.metadata.role == "admin") {
+    return redirect("/clients");
+  }
+
   if (!userId) {
     return redirect("/sign-in");
   }
