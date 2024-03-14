@@ -75,10 +75,13 @@ export default function Index() {
 
 
   return (
-    <main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center h-screen relative">
+<main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen relative">
       <div className="self-start absolute top-0 left-0 p-4">
         <Link to={`/clients`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-          ← Back
+          ← Back  
+        </Link>
+        <Link to={`/clients/table/${userId}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+          Upload Summary
         </Link>
       </div>
       <div className="grid place-items-center">
@@ -96,7 +99,7 @@ export default function Index() {
                 >
                   <div className="flex justify-between items-center">
                     <div className="font-bold">{project.name.replace(/-/g, '')}</div>
-                    <div>{project.percentage}%</div>
+                    <div className="p-2">{project.percentage}%</div>
                   </div>
                   <Progress value={project.percentage} />
                 </Link>

@@ -5,6 +5,7 @@ import { redirect } from "@remix-run/node";
 import db from "./../utils/cdb.server";
 import { Progress } from "./../components/ui/progress";
 
+
 export const loader = async (args) => {
   const { userId } = await getAuth(args);
   if (!userId) {
@@ -54,7 +55,7 @@ export default function Index() {
   const { projects } = useLoaderData();
 
   return (
-    <main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center h-screen">
+<main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen relative">
       <div className="grid place-items-center">
         <UserButton afterSignOutUrl="/" />
         <h1 className="text-white text-sm md:text-lg lg:text-xl">A better way of keeping track of your notes</h1>
@@ -69,7 +70,7 @@ export default function Index() {
                 >
                   <div className="flex justify-between items-center">
                     <div className="font-bold">{project.name.replace(/-/g, '')}</div>
-                    <div>{project.percentage}%</div>
+                    <div className="p-2">{project.percentage}%</div>
                   </div>
                   <Progress value={project.percentage} />
                 </Link>
