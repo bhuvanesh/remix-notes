@@ -1,5 +1,5 @@
 import db from '../utils/cdb.server';
-import { useLoaderData,Link } from '@remix-run/react';
+import { useLoaderData,Link,useActionData } from '@remix-run/react';
 import {
     Table,
     TableBody,
@@ -9,8 +9,13 @@ import {
     TableHead
   } from '../components/ui/table';
 import { getAuth } from "@clerk/remix/ssr.server";
-import { redirect } from "@remix-run/node";
+import { redirect,json } from "@remix-run/node";
 import { UserButton } from "@clerk/remix";
+import { createClerkClient } from "@clerk/remix/api.server";
+import Users from '../components/NewClient'; 
+import { useEffect} from "react";
+import { toast } from "sonner";
+
 
 
 
@@ -35,9 +40,22 @@ import { UserButton } from "@clerk/remix";
 
 export default function Clients() {
     const clients = useLoaderData();
+    const actionData = useActionData();
+
+    useEffect(() => {
+      if (actionData?.success) {
+          toast.success(actionData.success);
+      } else if (actionData?.error) {
+          toast.error(actionData.error);
+      }
+  }, [actionData]);
+    
     return (
         <div className="bg-gradient-to-r from-violet-500 to-violet-800 h-screen flex flex-col justify-center items-center">
+        <div className="flex justify-center mb-4"> 
             <UserButton afterSignOutUrl="/clients" />
+        </div>
+        <Users />
             <div className="max-w-lg w-full mt-8"> {/* Adjust the max-width as needed */}
                 <Table className="bg-white rounded-lg">
                 <TableHeader>
@@ -64,3 +82,47 @@ export default function Clients() {
         </div>
     )
 }
+
+export const action = async ({ request }) => {
+    const client = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+    const formData = await request.formData();
+    const email = formData.get("email");
+    const username = formData.get("username");
+    const password = formData.get("password");
+  
+    if (
+      typeof email !== "string" ||
+      typeof username !== "string" ||
+      typeof password !== "string"
+    ) {
+      return json({ error: "Invalid form data" }, { status: 400 });
+    }
+  
+    try {
+      const user = await client.users.createUser({
+        emailAddress: [email],
+        username: username,
+        password: password,
+      });
+  
+      console.log("Created user ID:", user.id);
+      console.log("Created user:", user.username);
+  
+      // Insert the created user into the clients table
+      await db.query(
+        "INSERT INTO public.clients (id, client_name, created_at) VALUES ($1, $2, NOW())",
+        [user.id, user.username]
+      );
+  
+      return json({ success: `Client created` }, { status: 201 });
+    } catch (error) {
+      console.error("Error creating user:", error);
+  
+      if (error.errors && error.errors.length > 0) {
+        const errorMessage = error.errors[0].message;
+        return json({ error: errorMessage }, { status: 400 });
+      }
+  
+      return json({ error: "Failed to create user" }, { status: 500 });
+    }
+  };
