@@ -170,7 +170,9 @@ export default function Upload() {
       <Link to="/" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
   ← Back
 </Link>
-
+<Link to={`/projects/table/${projectid}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+         Upload summary
+        </Link>
       </div>      <div className="text-center mb-8">
         <h1 className="text-3xl text-white">{projectName}</h1>
         <h2 className="text-xl text-white">Project ID: {projectid}</h2>
