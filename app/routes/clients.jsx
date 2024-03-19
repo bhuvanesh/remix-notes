@@ -52,6 +52,11 @@ export default function Clients() {
     
     return (
         <div className="bg-gradient-to-r from-violet-500 to-violet-800 h-screen flex flex-col justify-center items-center">
+                <div className="self-start absolute top-0 left-0 p-4">
+      <Link to="/template" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+  Create Template
+</Link>
+</div>
         <div className="flex justify-center mb-4"> 
             <UserButton afterSignOutUrl="/clients" />
         </div>
