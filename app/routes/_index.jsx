@@ -61,18 +61,18 @@ export default function Index() {
   const { projects } = useLoaderData();
 
   return (
-<main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen relative">
+    <main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen relative">
       <div className="grid place-items-center">
         <UserButton afterSignOutUrl="/" />
         <h1 className="text-white text-sm md:text-lg lg:text-xl">A better way of keeping track of your notes</h1>
         <p className="text-white text-xs md:text-sm lg:text-base mb-4">Try our early beta and never lose track of your notes again!</p>
         {projects.length > 0 ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             {projects.map((project, index) => (
-              <div key={project.id} className="w-full">
+              <div key={project.id} className="w-full max-w-sm">
                 <Link
                   to={`/projects/${project.name.replace(/-/g, '')}-${project.id}`}
-                  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 min-w-[300px]"
+                  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 h-full"
                 >
                   <div className="flex justify-between items-center">
                     <div className="font-bold">{project.name.replace(/-/g, '')}</div>
@@ -89,4 +89,6 @@ export default function Index() {
       </div>
     </main>
   );
+  
+  
 }

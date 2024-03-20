@@ -83,10 +83,10 @@ export default function Index() {
 
 
   return (
-<main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen relative">
+    <main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen relative">
       <div className="self-start absolute top-0 left-0 p-4">
         <Link to={`/clients`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-          ← Back  
+          ← Back
         </Link>
         <Link to={`/clients/table/${userId}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
           Upload Summary
@@ -98,12 +98,12 @@ export default function Index() {
         <p className="text-white text-xs md:text-sm lg:text-base mb-4">Try our early beta and never lose track of your notes again!</p>
         <ProjectForm userId={userId} />
         {projects.length > 0 ? (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             {projects.map((project, index) => (
-              <div key={project.id} className="w-full">
+              <div key={project.id} className="w-full max-w-sm">
                 <Link
                   to={`/clients/projects/${project.name.replace(/-/g, '')}-${project.id}-${userId}`}
-                  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 min-w-[300px]"
+                  className="text-white bg-transparent border border-white rounded px-4 py-2 mt-4 block text-center cursor-pointer hover:bg-white hover:text-violet-500 h-full"
                 >
                   <div className="flex justify-between items-center">
                     <div className="font-bold">{project.name.replace(/-/g, '')}</div>
@@ -120,6 +120,7 @@ export default function Index() {
       </div>
     </main>
   );
+  
 }
 
 export async function action({ request }) {

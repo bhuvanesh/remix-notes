@@ -1,12 +1,49 @@
 import { useEffect, useRef } from 'react';
-import { Form, useActionData, useNavigation, Link } from '@remix-run/react';
+import { Form, useActionData, useNavigation, Link,useLoaderData } from '@remix-run/react';
 import db from '../utils/cdb.server';
 import { toast } from 'sonner';
 import { useStore } from '../utils/zustand';
+import * as XLSX from 'xlsx';
+import MainComponent from '../components/NewTemplate';
+
+function ExcelUploader({ setDocuments }) {
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      const documentNames = jsonData.slice(1).map((row) => row[1]);
+      setDocuments(documentNames);
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
+  return (
+    <div className="mb-4">
+      <label htmlFor="excelFile" className="block mb-2 font-bold text-gray-700">
+        Upload Excel File
+      </label>
+      <input
+        type="file"
+        id="excelFile"
+        accept=".xlsx"
+        onChange={handleFileUpload}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+      />
+    </div>
+  );
+}
 
 export default function DocumentForm() {
   const { documents, documentName, setDocuments, setDocumentName } = useStore();
-
+  const templates = useLoaderData();
   const actionData = useActionData();
   const transition = useNavigation();
   const formRef = useRef(null);
@@ -48,8 +85,8 @@ export default function DocumentForm() {
         <Link to="/clients" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
           ← Back
         </Link>
-      </div>  
-      <Form method="post" className="bg-white p-8 rounded-lg shadow-md" ref={formRef}>
+      </div>
+      <Form method="post" className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg h-[600px] overflow-y-auto" ref={formRef}>
         <h2 className="text-2xl font-bold text-gray-700 mb-6">Create Template</h2>
         <div className="mb-4">
           <label htmlFor="templateName" className="block mb-2 font-bold text-gray-700">
@@ -85,6 +122,11 @@ export default function DocumentForm() {
             </button>
           </div>
         </div>
+        <ExcelUploader setDocuments={setDocuments} />
+        <div className="text-center my-4">
+          <div className="mb-2">or</div>
+          <MainComponent templates={templates} setDocuments={setDocuments} />
+        </div>
         <div className="mb-4">
           <h3 className="mb-2 font-bold text-gray-700">Documents List</h3>
           <div className="max-h-40 overflow-y-auto">
@@ -95,7 +137,7 @@ export default function DocumentForm() {
                   name="documents"
                   value={doc}
                   readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-violet-500 truncate"
                 />
                 <button
                   type="button"
@@ -124,6 +166,8 @@ export default function DocumentForm() {
       </Form>
     </div>
   );
+  
+  
 }
 
 export async function action({ request }) {
@@ -135,17 +179,14 @@ export async function action({ request }) {
   console.log('Documents:', documents);
 
   try {
-    // Insert the template name into the templates table
     const result = await db.query(
       'INSERT INTO templates (template_name) VALUES ($1) RETURNING id',
       [templateName]
     );
     const templateId = result.rows[0].id;
 
-    // Prepare the data for bulk insert into the doc_list table
     const docListData = documents.map((doc) => [doc, templateId]);
 
-    // Bulk insert the documents into the doc_list table
     await db.query(
       'INSERT INTO doc_list (doc_name, template_type) SELECT * FROM UNNEST($1::text[], $2::int[])',
       [documents, Array(documents.length).fill(templateId)]
@@ -156,4 +197,20 @@ export async function action({ request }) {
     console.error('Error inserting data:', error);
     return { success: false, error: 'An error occurred while inserting data' };
   }
+}
+
+export async function loader() {
+  const data = await db.query(`
+    SELECT
+      t.template_name,
+      ARRAY_AGG(d.doc_name) AS doc_names
+    FROM
+      templates t
+    LEFT JOIN
+      doc_list d ON t.id = d.template_type
+    GROUP BY
+      t.id, t.template_name;
+  `);
+
+  return data.rows;
 }
