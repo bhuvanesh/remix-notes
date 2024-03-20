@@ -156,7 +156,7 @@ export default function Upload() {
           ← Back
         </Link>
         <Link to={`/clients/projects/table/${userId}-${projectid}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-         Upload summary
+          Upload summary
         </Link>
       </div>
       <div className="text-center mb-8">
@@ -197,16 +197,16 @@ export default function Upload() {
         </div>
       )}
   
-      <div className="text-center">
+      <div className="text-center w-3/5 mx-auto">
         {/* <h2 className="text-lg text-white mb-4">Bucket Contents:</h2> */}
-        <div className="inline-block min-w-full overflow-hidden align-middle bg-white shadow-md rounded-lg max-h-96 overflow-y-auto">
-          <table className="min-w-full">
+        <div className="inline-block w-full overflow-hidden align-middle bg-white shadow-md rounded-lg max-h-96 overflow-y-auto">
+          <table className="w-full">
             <thead>
               <tr>
                 <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 font-bold text-gray-600 uppercase tracking-wider sticky top-0">
                   File Name
                 </th>
-                <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 font-bold text-gray-600 uppercase tracking-wider sticky top-0">
+                <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 font-bold text-gray-600 uppercase tracking-wider sticky top-0 min-w-[150px]">
                   Status
                 </th>
               </tr>
@@ -215,14 +215,14 @@ export default function Upload() {
               {contents?.Contents && contents.Contents.length > 0 ? (
                 contents.Contents.map((file, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 flex justify-start">
-                      <button
-                        onClick={() => handlePdfClick(file.url)}
-                        className="text-blue-600 hover:text-blue-800 visited:text-purple-600"
-                      >
-                        {file.name}
-                      </button>
-                    </td>
+<td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 flex justify-start">
+  <button
+    onClick={() => handlePdfClick(file.url)}
+    className="text-blue-600 hover:text-blue-800 visited:text-purple-600 text-left"
+  >
+    {file.name}
+  </button>
+</td>
                     <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
                       <div className="flex justify-center">
                         <Form method="post">

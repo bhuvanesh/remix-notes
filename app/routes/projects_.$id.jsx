@@ -167,150 +167,148 @@ export default function Upload() {
     <div className="min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 flex flex-col justify-center items-center">
       {/* Back navigation link */}
       <div className="self-start absolute top-0 left-0 p-4">
-      <Link to="/" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-  ← Back
-</Link>
-<Link to={`/projects/table/${projectid}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-         Upload summary
+        <Link to="/" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+          ← Back
         </Link>
-      </div>      <div className="text-center mb-8">
+        <Link to={`/projects/table/${projectid}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+          Upload summary
+        </Link>
+      </div>
+      <div className="text-center mb-8">
         <h1 className="text-3xl text-white">{projectName}</h1>
         <h2 className="text-xl text-white">Project ID: {projectid}</h2>
       </div>
       {/* Modal for PDF preview */}
       {isModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white p-5 rounded-lg overflow-auto max-h-[90vh] max-w-[90vw]">
-      {/* Separate div for the close button with fixed positioning */}
-      <div className="absolute top-0 right-0 p-5">
-        <button
-          onClick={() => setIsModalOpen(false)}
-          className="bg-red-500 text-white py-2 px-4 rounded"
-        >
-          Close
-        </button>
-      </div>
-      {/* PDF Document in its own div to allow for scrolling */}
-      <div className="pt-16"> {/* Adjust padding-top as needed */}
-        <Document
-          file={currentPdfUrl}
-          onLoadSuccess={onDocumentLoadSuccess}
-          className="PDFDocument"
-        >
-          {Array.from(new Array(numPages), (el, index) => (
-            <Page
-              key={`page_${index + 1}`}
-              pageNumber={index + 1}
-              width={window.innerWidth > 1400 ? 1080 : window.innerWidth - 100}
-              renderTextLayer={false}
-            />
-          ))}
-        </Document>
-      </div>
-    </div>
-  </div>
-)}
-
-      <div className="text-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-5 rounded-lg overflow-auto max-h-[90vh] max-w-[90vw]">
+            {/* Separate div for the close button with fixed positioning */}
+            <div className="absolute top-0 right-0 p-5">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="bg-red-500 text-white py-2 px-4 rounded"
+              >
+                Close
+              </button>
+            </div>
+            {/* PDF Document in its own div to allow for scrolling */}
+            <div className="pt-16"> {/* Adjust padding-top as needed */}
+              <Document
+                file={currentPdfUrl}
+                onLoadSuccess={onDocumentLoadSuccess}
+                className="PDFDocument"
+              >
+                {Array.from(new Array(numPages), (el, index) => (
+                  <Page
+                    key={`page_${index + 1}`}
+                    pageNumber={index + 1}
+                    width={window.innerWidth > 1400 ? 1080 : window.innerWidth - 100}
+                    renderTextLayer={false}
+                  />
+                ))}
+              </Document>
+            </div>
+          </div>
+        </div>
+      )}
+  
+      <div className="text-center w-3/5 mx-auto">
         <Form method="post" encType="multipart/form-data" className="mb-8">
-        <input type="hidden" name="userId" value={userId} />
-        <input type="hidden" name="projectid" value={projectid} />
-<select
-  name="documentId"
-  className="w-32 h-8 text-sm truncate bg-white border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 -ml-1"
->
-  {documents.map((doc) => (
-    <option key={doc.id} value={doc.id} className="truncate">
-      {doc.doc_name}
-    </option>
-  ))}
-</select>
-          <input
-        type="file"
-        name="file"
-        accept="application/pdf"
-        className="mb-4"
-        value={fileInputValue} 
-        onChange={(e) => setFileInputValue(e.target.value)} 
-      />
-       <Button type="submit" name="_action" value="upload" disabled={transition.state === "submitting"}>
-        {transition.state === "submitting" ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Uploadng...
-          </>
-        ) : (
-          "Upload"
-        )}
-      </Button>
-    </Form>
-        {actionData && actionData.error && (
-          <p className="text-white">
-            {actionData.error}
-          </p>
-        )}
-        <div className="mt-8">
-          <h2 className="text-lg text-white mb-4">Bucket Contents:</h2>
-          <div className="max-w-md">
-  <div className="inline-block min-w-full overflow-hidden align-middle bg-white shadow-md rounded-lg">
-            <table className="min-w-full">
-            <thead>
-  <tr>
-    <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs leading-4 font-semibold text-gray-600 uppercase tracking-wider">
-      File Name
-    </th>
-    <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs leading-4 font-semibold text-gray-600 uppercase tracking-wider">
-      Status
-    </th>
-  </tr>
-</thead>
-<tbody className="bg-white">
-  {contents?.Contents && contents.Contents.length > 0 ? (
-    contents.Contents.map((file, index) => (
-      <tr key={index}>
-        <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-left">
-          <button
-            onClick={() => handlePdfClick(file.url)}
-            className="text-blue-600 hover:text-blue-800 visited:text-purple-600"
+          <input type="hidden" name="userId" value={userId} />
+          <input type="hidden" name="projectid" value={projectid} />
+          <select
+            name="documentId"
+            className="w-32 h-8 text-sm truncate bg-white border border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 -ml-1"
           >
-            {file.name}
-          </button>
-        </td>
-        <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-          <div className="flex items-center">
-            {file.statusCode === true ? (
+            {documents.map((doc) => (
+              <option key={doc.id} value={doc.id} className="truncate">
+                {doc.doc_name}
+              </option>
+            ))}
+          </select>
+          <input
+            type="file"
+            name="file"
+            accept="application/pdf"
+            className="mb-4"
+            value={fileInputValue}
+            onChange={(e) => setFileInputValue(e.target.value)}
+          />
+          <Button type="submit" name="_action" value="upload" disabled={transition.state === "submitting"}>
+            {transition.state === "submitting" ? (
               <>
-                <CheckCircleIcon className="h-6 w-6 text-green-500 mr-1" />
-                <span className="text-sm text-green-500">Approved</span>
-              </>
-            ) : file.statusCode === false ? (
-              <>
-                <XCircleIcon className="h-6 w-6 text-red-500 mr-1" />
-                <span className="text-sm text-red-500">Rejected</span>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
               </>
             ) : (
-              <>
-                <ClockIcon className="h-6 w-6 text-gray-500 mr-1" />
-                <span className="text-sm text-gray-500">Pending</span>
-              </>
+              "Upload"
             )}
-          </div>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-left" colSpan="2">
-        No files found.
-      </td>
-    </tr>
-  )}
-</tbody>
+          </Button>
+        </Form>
+        {actionData && actionData.error && (
+          <p className="text-white">{actionData.error}</p>
+        )}
+        <div className="mt-8">
+          {/* <h2 className="text-lg text-white mb-4">Bucket Contents:</h2> */}
+          <div className="inline-block w-full overflow-hidden align-middle bg-white shadow-md rounded-lg max-h-96 overflow-y-auto">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 font-bold text-gray-600 uppercase tracking-wider sticky top-0">
+                    File Name
+                  </th>
+                  <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm leading-4 font-bold text-gray-600 uppercase tracking-wider sticky top-0 min-w-[150px]">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white">
+                {contents?.Contents && contents.Contents.length > 0 ? (
+                  contents.Contents.map((file, index) => (
+                    <tr key={index}>
+<td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 flex justify-start">
+  <button
+    onClick={() => handlePdfClick(file.url)}
+    className="text-blue-600 hover:text-blue-800 visited:text-purple-600 text-left"
+  >
+    {file.name}
+  </button>
+</td>
+                      <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                        <div className="flex items-center justify-center">
+                          {file.statusCode === true ? (
+                            <>
+                              <CheckCircleIcon className="h-6 w-6 text-green-500 mr-1" />
+                              <span className="text-sm text-green-500">Approved</span>
+                            </>
+                          ) : file.statusCode === false ? (
+                            <>
+                              <XCircleIcon className="h-6 w-6 text-red-500 mr-1" />
+                              <span className="text-sm text-red-500">Rejected</span>
+                            </>
+                          ) : (
+                            <>
+                              <ClockIcon className="h-6 w-6 text-gray-500 mr-1" />
+                              <span className="text-sm text-gray-500">Pending</span>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-left" colSpan="2">
+                      No files found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
             </table>
-          </div>
           </div>
         </div>
       </div>
     </div>
   );
+  
 }
