@@ -9,12 +9,11 @@ export const loader = async (args) => {
 
   // If the user does not have the admin role, redirect them to the home page
   if (sessionClaims?.metadata.role !== "admin") {
-      return redirect("/");
+    return redirect("/");
     console.log(sessionClaims?.metadata.role);
-    
-  } 
-   const [clientId, projectid] = args.params.id.split('-');
+  }
 
+  const [clientId, projectId] = args.params.id.split('-');
 
   const data = await db.query(`
     SELECT
@@ -29,18 +28,19 @@ export const loader = async (args) => {
       p.project_name,
       p.id AS project_code
     FROM
-      documents d
+    ${process.env.DOC_LIST_TABLE} d
     JOIN
-      projects p ON p.client_code = $1
+    ${process.env.TEMPLATES_TABLE} t ON d.template_type = t.id
+    JOIN
+      ${process.env.PROJECTS_TABLE} p ON p.template_type = t.id AND p.client_code = $1
     LEFT JOIN
-      files f ON d.id = f.document_code AND p.id = f.project_code AND f.client_code = p.client_code
+      ${process.env.FILES_TABLE} f ON d.id = f.document_code AND p.id = f.project_code AND f.client_code = p.client_code
     WHERE
       (f.is_latest IS TRUE OR f.is_latest IS NULL)
       AND p.id = $2;
-  `, [clientId, projectid]);
+  `, [clientId, projectId]);
 
-  return {data:data.rows,clientId};
-
+  return { data: data.rows, clientId };
 };
 
 export default function DocumentStatus() {

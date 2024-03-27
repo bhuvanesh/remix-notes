@@ -36,21 +36,21 @@ export const loader = async (args) => {
 
     // Execute the main SQL query to get the required document details
     const resFiles = await client.query(`
-      SELECT
-        f.file_path,
-        f.document_code,
-        d.doc_name,
-        d.id,
-        f.status_code
-      FROM
-        public.files f
-      JOIN
-        public.documents d ON f.document_code = d.id
-      WHERE
-        f.is_latest = true
-        AND f.project_code = $1
-        AND f.client_code = $2;
-    `, [projectid, userId]);
+    SELECT
+    f.file_path,
+    f.document_code,
+    dl.doc_name,
+    dl.id,
+    f.status_code
+  FROM
+  ${process.env.FILES_TABLE} f
+  JOIN
+  ${process.env.DOC_LIST_TABLE} dl ON f.document_code = dl.id
+  WHERE
+    f.is_latest = true
+    AND f.project_code = $1
+    AND f.client_code = $2;
+`, [projectid, userId]);
 
     // Format the main query results to match the desired structure
     formattedDocuments = resFiles.rows.map(doc => ({

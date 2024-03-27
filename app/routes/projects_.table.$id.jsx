@@ -7,7 +7,7 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "~
 export const loader = async (args) => {
   // Check for user authentication
   const { userId } = await getAuth(args);
-  const [projectid] = args.params.id;
+  const projectId = args.params.id;
 
   if (!userId) {
     return redirect("/sign-in");
@@ -26,18 +26,19 @@ export const loader = async (args) => {
       p.project_name,
       p.id AS project_code
     FROM
-      documents d
+    ${process.env.DOC_LIST_TABLE} d
     JOIN
-      projects p ON p.client_code = $1
+    ${process.env.TEMPLATES_TABLE} t ON d.template_type = t.id
+    JOIN
+      ${process.env.PROJECTS_TABLE} p ON p.template_type = t.id AND p.client_code = $1
     LEFT JOIN
-      files f ON d.id = f.document_code AND p.id = f.project_code AND f.client_code = p.client_code
+      ${process.env.FILES_TABLE} f ON d.id = f.document_code AND p.id = f.project_code AND f.client_code = p.client_code
     WHERE
       (f.is_latest IS TRUE OR f.is_latest IS NULL)
       AND p.id = $2;
-  `, [userId, projectid]);
+  `, [userId, projectId]);
 
   return data.rows;
-
 };
 
 export default function DocumentStatus() {
@@ -51,7 +52,7 @@ export default function DocumentStatus() {
     <main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen">
       <div className="bg-white p-8 rounded shadow max-w-7xl mx-auto">
         <div className="self-start absolute top-0 left-0 p-4">
-          <Link  to={projectLink} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+          <Link to={projectLink} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
             ← Back
           </Link>
         </div>

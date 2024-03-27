@@ -3,19 +3,17 @@ import { redirect } from "@remix-run/node";
 import db from "./../utils/cdb.server";
 import { CheckCircleIcon, XCircleIcon, ClockIcon, NoSymbolIcon } from '@heroicons/react/24/solid';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "~/components/ui/table";
-import { useLoaderData,Link } from "@remix-run/react";
+import { useLoaderData, Link } from "@remix-run/react";
 
 export const loader = async (args) => {
   const { sessionClaims } = await getAuth(args);
 
   // If the user does not have the admin role, redirect them to the home page
   if (sessionClaims?.metadata.role !== "admin") {
-      return redirect("/");
+    return redirect("/");
     console.log(sessionClaims?.metadata.role);
-    
   }
   const userId = args.params.id;
-
 
   const data = await db.query(`
     SELECT
@@ -30,11 +28,13 @@ export const loader = async (args) => {
       p.project_name,
       p.id AS project_code
     FROM
-      documents d
+    ${process.env.DOC_LIST_TABLE} d
     JOIN
-      projects p ON p.client_code = $1
+    ${process.env.TEMPLATES_TABLE} t ON d.template_type = t.id
+    JOIN
+      ${process.env.PROJECTS_TABLE} p ON p.template_type = t.id AND p.client_code = $1
     LEFT JOIN
-      files f ON d.id = f.document_code AND p.id = f.project_code AND f.client_code = p.client_code
+      ${process.env.FILES_TABLE} f ON d.id = f.document_code AND p.id = f.project_code AND f.client_code = p.client_code
     WHERE
       f.is_latest IS TRUE OR f.is_latest IS NULL;
   `, [userId]);

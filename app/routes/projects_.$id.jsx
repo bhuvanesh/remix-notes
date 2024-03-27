@@ -24,8 +24,13 @@ export const loader = async (args) => {
   let formattedDocuments = [];
   try {
     const client = await db.connect();
-    // Execute the additional SQL query to get the document names and ids
-    const resDocs = await client.query('SELECT id, doc_name FROM documents');
+    // Execute the SQL query to get the document names for the given template type and project id
+    const resDocs = await client.query(`
+      SELECT dl.doc_name, dl.id
+      FROM ${process.env.DOC_LIST_TABLE} dl
+      JOIN ${process.env.PROJECTS_TABLE} p ON dl.template_type = p.template_type
+      WHERE p.id = $1
+    `, [projectid]);
     documents = resDocs.rows;
 
     // Execute the main SQL query to get the required document details
@@ -33,13 +38,13 @@ export const loader = async (args) => {
       SELECT
         f.file_path,
         f.document_code,
-        d.doc_name,
-        d.id,
+        dl.doc_name,
+        dl.id,
         f.status_code
       FROM
         public.files f
       JOIN
-        public.documents d ON f.document_code = d.id
+      ${process.env.DOC_LIST_TABLE} dl ON f.document_code = dl.id
       WHERE
         f.is_latest = true
         AND f.project_code = $1
@@ -96,14 +101,14 @@ export async function action({ request }) {
 
         // Check for existing entry with is_latest = true
         const existingFilesRes = await client.query(`
-          SELECT id FROM files
+          SELECT id FROM ${process.env.FILES_TABLE}
           WHERE project_code = $1 AND client_code = $2 AND document_code = $3 AND is_latest = true
         `, [projectid, userId, documentId]);
 
         // If an existing entry is found, set is_latest to false
         if (existingFilesRes.rows.length > 0) {
           await client.query(`
-            UPDATE files
+            UPDATE ${process.env.FILES_TABLE}
             SET is_latest = false
             WHERE id = $1
           `, [existingFilesRes.rows[0].id]);
@@ -111,7 +116,7 @@ export async function action({ request }) {
 
         // Insert the new file details into the database
         await client.query(`
-          INSERT INTO files (client_code, project_code, document_code, file_path, created_at, updated_at)
+          INSERT INTO ${process.env.FILES_TABLE} (client_code, project_code, document_code, file_path, created_at, updated_at)
           VALUES ($1, $2, $3, $4, NOW(), NOW())
         `, [userId, projectid, documentId, objectUrl]);
 

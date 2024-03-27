@@ -115,7 +115,7 @@ export const action = async ({ request }) => {
   
       // Insert the created user into the clients table
       await db.query(
-        "INSERT INTO public.clients (id, client_name, created_at) VALUES ($1, $2, NOW())",
+        `INSERT INTO ${process.env.CLIENTS_TABLE} (id, client_name, created_at) VALUES ($1, $2, NOW())`,
         [user.id, user.username]
       );
   

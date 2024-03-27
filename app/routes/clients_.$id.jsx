@@ -15,42 +15,44 @@ export const loader = async (args) => {
 
   // If the user does not have the admin role, redirect them to the home page
   if (sessionClaims?.metadata.role !== "admin") {
-      return redirect("/");
-    console.log(sessionClaims?.metadata.role);
-    
+    return redirect("/");
   }
 
-    const userId = args.params.id;
-    console.log('userIdss', userId);
-
+  const userId = args.params.id;
 
   // Fetch project IDs, names, and percentage of latest documents from the database
   const query = `
   WITH project_counts AS (
     SELECT 
-        p.id AS project_code,
-        p.project_name,
-        COUNT(CASE WHEN f.is_latest = true AND f.status_code = true THEN f.project_code END) AS latest_doc_count 
+      p.id AS project_code,
+      p.project_name,
+      COUNT(CASE WHEN f.is_latest = true AND f.status_code = true THEN f.project_code END) AS latest_doc_count 
     FROM 
-        projects p
-        LEFT JOIN files f ON p.id = f.project_code 
+      ${process.env.PROJECTS_TABLE} p
+      LEFT JOIN ${process.env.FILES_TABLE} f ON p.id = f.project_code 
     WHERE 
-        p.client_code = $1
+      p.client_code = $1
     GROUP BY 
-        p.id, p.project_name
-), total_docs AS (
+      p.id, p.project_name
+  ), total_docs AS (
     SELECT 
-        COUNT(DISTINCT id) AS total_doc_count
+      p.id AS project_code,
+      COUNT(DISTINCT dl.id) AS total_doc_count
     FROM 
-        documents
-)
-SELECT 
+      ${process.env.PROJECTS_TABLE} p
+      JOIN ${process.env.DOC_LIST_TABLE} dl ON p.template_type = dl.template_type
+    WHERE 
+      p.client_code = $1
+    GROUP BY 
+      p.id
+  )
+  SELECT 
     pc.project_code AS id,
     pc.project_name AS name,
-    ROUND((pc.latest_doc_count * 100.0) / td.total_doc_count, 2) AS percentage
-FROM 
-    project_counts pc,
-    total_docs td;
+    ROUND((pc.latest_doc_count * 100.0) / COALESCE(td.total_doc_count, 0), 2) AS percentage
+  FROM 
+    project_counts pc
+    LEFT JOIN total_docs td ON pc.project_code = td.project_code;
   `;
   const { rows } = await db.query(query, [userId]);
   const projects = rows.map(row => ({
@@ -59,12 +61,16 @@ FROM
     percentage: row.percentage
   }));
 
-  // Pass project data to the component
-  return { projects, userId};
+  // Fetch template data from the database
+  const templatesResult = await db.query(`SELECT id, template_name FROM ${process.env.TEMPLATES_TABLE}`);
+  const templates = templatesResult.rows;
+
+  // Pass project data and template data to the component
+  return { projects, userId, templates };
 };
 
 export default function Index() {
-  const { projects,userId } = useLoaderData();
+  const { projects, userId, templates } = useLoaderData();
   
 
   const actionData = useActionData();
@@ -96,7 +102,7 @@ export default function Index() {
         <UserButton afterSignOutUrl="/" />
         <h1 className="text-white text-sm md:text-lg lg:text-xl">A better way of keeping track of your notes</h1>
         <p className="text-white text-xs md:text-sm lg:text-base mb-4">Try our early beta and never lose track of your notes again!</p>
-        <ProjectForm userId={userId} />
+        <ProjectForm userId={userId} templates={templates} />
         {projects.length > 0 ? (
           <div className="flex flex-wrap justify-center gap-4">
             {projects.map((project, index) => (
@@ -128,7 +134,8 @@ export async function action({ request }) {
   const projectName = formData.get("projectName");
   const projectDescription = formData.get("projectDescription");
   const clientCode = formData.get("userId");
-  const projectType = formData.get("projectType");
+  const templateType = formData.get("templateType");
+  const type = formData.get("type");
 
   try {
     // Fetch the highest current id in the projects table
@@ -143,12 +150,12 @@ export async function action({ request }) {
     // Increment the nextId by 1
     nextId += 1;
 
-    // Insert the new project with the incremented id and project type
+    // Insert the new project with the incremented id, template type, and type
     const insertResult = await db.query(
-      `INSERT INTO public.projects (id, project_name, client_code, description, created_at, type)
-       VALUES ($1, $2, $3, $4, NOW(), $5)
+      `INSERT INTO public.projects (id, project_name, client_code, description, created_at, template_type, type)
+       VALUES ($1, $2, $3, $4, NOW(), $5, $6)
        RETURNING id;`,
-      [nextId, projectName, clientCode, projectDescription, projectType]
+      [nextId, projectName, clientCode, projectDescription, templateType, type]
     );
 
     console.log('Inserted project with ID:', insertResult.rows[0].id);

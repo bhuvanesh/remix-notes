@@ -188,7 +188,7 @@ export async function action({ request }) {
     const docListData = documents.map((doc) => [doc, templateId]);
 
     await db.query(
-      'INSERT INTO doc_list (doc_name, template_type) SELECT * FROM UNNEST($1::text[], $2::int[])',
+      `INSERT INTO ${process.env.DOC_LIST_TABLE} (doc_name, template_type) SELECT * FROM UNNEST($1::text[], $2::int[])`,
       [documents, Array(documents.length).fill(templateId)]
     );
 
@@ -207,7 +207,7 @@ export async function loader() {
     FROM
       templates t
     LEFT JOIN
-      doc_list d ON t.id = d.template_type
+    ${process.env.DOC_LIST_TABLE} d ON t.id = d.template_type
     GROUP BY
       t.id, t.template_name;
   `);

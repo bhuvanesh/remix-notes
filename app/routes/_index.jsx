@@ -22,29 +22,35 @@ export const loader = async (args) => {
   const query = `
   WITH project_counts AS (
     SELECT 
-        p.id AS project_code,
-        p.project_name,
-        COUNT(CASE WHEN f.is_latest = true AND f.status_code = true THEN f.project_code END) AS latest_doc_count 
+      p.id AS project_code,
+      p.project_name,
+      COUNT(CASE WHEN f.is_latest = true AND f.status_code = true THEN f.project_code END) AS latest_doc_count 
     FROM 
-        projects p
-        LEFT JOIN files f ON p.id = f.project_code 
+      ${process.env.PROJECTS_TABLE} p
+      LEFT JOIN ${process.env.FILES_TABLE} f ON p.id = f.project_code 
     WHERE 
-        p.client_code = $1
+      p.client_code = $1
     GROUP BY 
-        p.id, p.project_name
-), total_docs AS (
+      p.id, p.project_name
+  ), total_docs AS (
     SELECT 
-        COUNT(DISTINCT id) AS total_doc_count
+      p.id AS project_code,
+      COUNT(DISTINCT dl.id) AS total_doc_count
     FROM 
-        documents
-)
-SELECT 
+      ${process.env.PROJECTS_TABLE} p
+      JOIN ${process.env.DOC_LIST_TABLE} dl ON p.template_type = dl.template_type
+    WHERE 
+      p.client_code = $1
+    GROUP BY 
+      p.id
+  )
+  SELECT 
     pc.project_code AS id,
     pc.project_name AS name,
-    ROUND((pc.latest_doc_count * 100.0) / td.total_doc_count, 2) AS percentage
-FROM 
-    project_counts pc,
-    total_docs td;
+    ROUND((pc.latest_doc_count * 100.0) / COALESCE(td.total_doc_count, 0), 2) AS percentage
+  FROM 
+    project_counts pc
+    LEFT JOIN total_docs td ON pc.project_code = td.project_code;
   `;
   const { rows } = await db.query(query, [userId]);
   const projects = rows.map(row => ({
