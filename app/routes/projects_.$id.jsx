@@ -94,7 +94,7 @@ export async function action({ request }) {
       try {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        const filePath = `${userId}/${file.name}`;
+        const filePath = `${userId}/${projectid}_${file.name}`; // Include projectid in the filename
         const objectUrl = await uploadFileToS3(buffer, filePath);
 
         const client = await db.connect();
@@ -121,8 +121,7 @@ export async function action({ request }) {
         `, [userId, projectid, documentId, objectUrl]);
 
         client.release();
-return json({ success: "File uploaded successfully." });
-       
+        return json({ success: "File uploaded successfully." });
       } catch (error) {
         console.error(error);
         return json({ error: error.message });
@@ -131,7 +130,6 @@ return json({ success: "File uploaded successfully." });
       return json({ error: "No file uploaded." });
     }
   }
-
 }
 
 
