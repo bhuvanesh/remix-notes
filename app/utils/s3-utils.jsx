@@ -13,21 +13,42 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
-const uploadFileToS3 = (file, fileName) => {
+const generatePresignedUrl = async (fileName) => {
   const params = {
     Bucket: BUCKET_NAME,
     Key: fileName,
-    Body: file,
+    Expires: 60, // URL expiration time in seconds
   };
 
-  return s3.upload(params).promise()
-    .then(data => {
-      // The data.Location contains the Object URL of the uploaded file
-      return data.Location;
-    });
+  try {
+    const presignedUrl = await s3.getSignedUrlPromise('putObject', params);
+    return presignedUrl;
+  } catch (error) {
+    console.error('Error generating presigned URL:', error);
+    throw error;
+  }
 };
 
-// Function to list the contents of an S3 bucket
+const uploadFileToS3 = async (file, fileName) => {
+  try {
+    const presignedUrl = await generatePresignedUrl(fileName);
+
+    const response = await fetch(presignedUrl, {
+      method: 'PUT',
+      body: file,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload file to S3');
+    }
+
+    const objectUrl = `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${fileName}`;
+    return objectUrl;
+  } catch (error) {
+    console.error('Error uploading file to S3:', error);
+    throw error;
+  }
+};
 // Function to list the contents of a user-specific folder in an S3 bucket
 const listContentsOfBucket = async (userId) => {
   const params = {
