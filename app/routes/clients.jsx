@@ -50,42 +50,45 @@ export default function Clients() {
       }
   }, [actionData]);
     
-    return (
-        <div className="bg-gradient-to-r from-violet-500 to-violet-800 h-screen flex flex-col justify-center items-center">
-                <div className="self-start absolute top-0 left-0 p-4">
-      <Link to="/template" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-  Create Template
-</Link>
-</div>
-        <div className="flex justify-center mb-4"> 
-            <UserButton afterSignOutUrl="/clients" />
+  return (
+    <div className="bg-gradient-to-r from-violet-500 to-violet-800 h-screen flex flex-col justify-center items-center">
+      <div className="self-start absolute top-0 left-0 p-4">
+        <Link to="/template" className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+          Create Template
+        </Link>
+      </div>
+      <div className="flex justify-center mb-4">
+        <UserButton afterSignOutUrl="/clients" />
+      </div>
+      <Users />
+      <div className="max-w-lg w-full mt-8">
+        <div className="bg-white rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center font-bold">Clients List</TableHead>
+              </TableRow>
+            </TableHeader>
+          </Table>
+          <div className="overflow-auto custom-scrollbar" style={{ maxHeight: '400px' }}> {/* Adjust the max-height as needed */}
+            <Table>
+              <TableBody>
+                {clients.map(client => (
+                  <TableRow key={client.id}>
+                    <TableCell colSpan={2}>
+                      <Link to={`/clients/${client.id}`} className="text-blue-500 hover:underline px-3">
+                        {client.client_name}
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-        <Users />
-            <div className="max-w-lg w-full mt-8"> {/* Adjust the max-width as needed */}
-                <Table className="bg-white rounded-lg">
-                <TableHeader>
-                <TableRow>
-                            {/* <TableCell colSpan={2}>
-                                <h1 className="text-black-500 text-4xl neon-effect">Clients List</h1>
-                            </TableCell> */}
-                            <TableHead className='text-center font-bold'> Clients List</TableHead>
-                        </TableRow>
-                </TableHeader>
-                    <TableBody>
-                        {clients.map(client => (
-                            <TableRow key={client.id}>
-                                <TableCell colSpan={2}>
-                                    <Link to={`/clients/${client.id}`} className="text-blue-500 hover:underline px-3">
-                                        {client.client_name}
-                                    </Link>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
-    )
+      </div>
+    </div>
+  );
 }
 
 export const action = async ({ request }) => {
