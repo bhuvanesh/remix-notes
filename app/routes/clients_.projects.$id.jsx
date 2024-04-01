@@ -9,6 +9,14 @@ import db from "../utils/cdb.server";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Loader2 } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb"
 
 // Set the workerSrc for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
@@ -150,13 +158,36 @@ export default function Upload() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 flex flex-col justify-center items-center">
-      {/* Back navigation link */}
+      {/* Breadcrumb navigation */}
       <div className="self-start absolute top-0 left-0 p-4">
-        <Link to={`/clients/${userId}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-          ← Back
-        </Link>
-        <Link to={`/clients/projects/table/${userId}-${projectid}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-          Upload summary
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink>
+                <Link to={`/clients`} className="text-white hover:text-gray-300">
+                  Clients
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="text-white" />
+            <BreadcrumbItem>
+              <BreadcrumbLink>
+                <Link to={`/clients/${userId}`} className="text-white hover:text-gray-300">
+                  Projects
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="text-white" />
+            <BreadcrumbItem>
+              <BreadcrumbPage>File Upload</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      {/* Upload Summary button */}
+      <div className="absolute top-0 right-0 p-4">
+        <Link to={`/clients/projects/table/${userId}-${projectid}`} className="bg-white text-purple-600 font-bold rounded px-4 py-2 hover:bg-gray-300">
+          Upload Summary
         </Link>
       </div>
       <div className="text-center mb-8">

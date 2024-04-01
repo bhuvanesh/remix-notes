@@ -7,6 +7,14 @@ import { Progress } from "./../components/ui/progress";
 import ProjectForm from '../components/NewProject';
 import { useEffect } from 'react';
 import { toast } from "sonner";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb"
 
 
 
@@ -90,11 +98,26 @@ export default function Index() {
 
   return (
     <main id="content" className="bg-gradient-to-b from-violet-500 to-violet-700 flex items-center justify-center min-h-screen relative">
-      <div className="self-start absolute top-0 left-0 p-4">
-        <Link to={`/clients`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
-          ← Back
-        </Link>
-        <Link to={`/clients/table/${userId}`} className="text-white hover:text-gray-300 font-bold outline outline-black outline-1 rounded px-2 py-1">
+      <div className="absolute top-0 left-0 p-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink>
+                <Link to={`/clients`} className="text-white hover:text-gray-300 cursor-pointer">
+                  Clients
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="text-white" />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Projects</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      {/* Upload Summary button aligned to the right corner */}
+      <div className="absolute top-0 right-0 p-4">
+        <Link to={`/clients/table/${userId}`} className="bg-white text-purple-600 font-bold rounded px-4 py-2 hover:bg-gray-300">
           Upload Summary
         </Link>
       </div>
@@ -125,7 +148,7 @@ export default function Index() {
         )}
       </div>
     </main>
-  );
+  )
   
 }
 
@@ -158,7 +181,7 @@ export async function action({ request }) {
       [nextId, projectName, clientCode, projectDescription, templateType, type]
     );
 
-    console.log('Inserted project with ID:', insertResult.rows[0].id);
+    console.log('Inserted project with ID:', inassertResult.rows[0].id);
 
     // Return some data to indicate success
     return json({ success: "Project added successfully." });
