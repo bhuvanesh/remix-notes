@@ -30,6 +30,7 @@ export const loader = async (args) => {
       LEFT JOIN ${process.env.FILES_TABLE} f ON p.id = f.project_code 
     WHERE 
       p.client_code = $1
+      AND p.is_deleted = false
     GROUP BY 
       p.id, p.project_name
   ), total_docs AS (
@@ -41,6 +42,7 @@ export const loader = async (args) => {
       JOIN ${process.env.DOC_LIST_TABLE} dl ON p.template_type = dl.template_type
     WHERE 
       p.client_code = $1
+      AND p.is_deleted = false
     GROUP BY 
       p.id
   )
@@ -62,6 +64,7 @@ export const loader = async (args) => {
   // Pass project data to the component
   return { projects };
 };
+
 
 export default function Index() {
   const { projects } = useLoaderData();

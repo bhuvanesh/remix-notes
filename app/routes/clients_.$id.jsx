@@ -40,6 +40,7 @@ export const loader = async (args) => {
       LEFT JOIN ${process.env.FILES_TABLE} f ON p.id = f.project_code 
     WHERE 
       p.client_code = $1
+      AND p.is_deleted = false
     GROUP BY 
       p.id, p.project_name
   ), total_docs AS (
@@ -51,6 +52,7 @@ export const loader = async (args) => {
       JOIN ${process.env.DOC_LIST_TABLE} dl ON p.template_type = dl.template_type
     WHERE 
       p.client_code = $1
+      AND p.is_deleted = false
     GROUP BY 
       p.id
   )
@@ -73,12 +75,16 @@ export const loader = async (args) => {
   const templatesResult = await db.query(`SELECT id, template_name FROM ${process.env.TEMPLATES_TABLE}`);
   const templates = templatesResult.rows;
 
+  // Fetch project managers data from the database
+  const projectManagersResult = await db.query(`SELECT id, name FROM public.employees`);
+  const projectManagers = projectManagersResult.rows;
+
   // Pass project data and template data to the component
-  return { projects, userId, templates };
+  return { projects, userId, templates, projectManagers };
 };
 
 export default function Index() {
-  const { projects, userId, templates } = useLoaderData();
+  const { projects, userId, templates,projectManagers } = useLoaderData();
   
 
   const actionData = useActionData();
@@ -125,7 +131,7 @@ export default function Index() {
         <UserButton afterSignOutUrl="/" />
         <h1 className="text-white text-sm md:text-lg lg:text-xl">A better way of keeping track of your notes</h1>
         <p className="text-white text-xs md:text-sm lg:text-base mb-4">Try our early beta and never lose track of your notes again!</p>
-        <ProjectForm userId={userId} templates={templates} />
+        <ProjectForm userId={userId} templates={templates} projectManagers={projectManagers} />
         {projects.length > 0 ? (
           <div className="flex flex-wrap justify-center gap-4">
             {projects.map((project, index) => (
@@ -159,6 +165,7 @@ export async function action({ request }) {
   const clientCode = formData.get("userId");
   const templateType = formData.get("templateType");
   const type = formData.get("type");
+  const projectManager = formData.get("projectManager"); 
 
   try {
     // Fetch the highest current id in the projects table
@@ -173,15 +180,15 @@ export async function action({ request }) {
     // Increment the nextId by 1
     nextId += 1;
 
-    // Insert the new project with the incremented id, template type, and type
+    // Insert the new project with the incremented id, template type, type, and project manager
     const insertResult = await db.query(
-      `INSERT INTO public.projects (id, project_name, client_code, description, created_at, template_type, type)
-       VALUES ($1, $2, $3, $4, NOW(), $5, $6)
+      `INSERT INTO public.projects (id, project_name, client_code, description, created_at, template_type, type, pm_code)
+       VALUES ($1, $2, $3, $4, NOW(), $5, $6, $7)
        RETURNING id;`,
-      [nextId, projectName, clientCode, projectDescription, templateType, type]
+      [nextId, projectName, clientCode, projectDescription, templateType, type, projectManager]
     );
 
-    console.log('Inserted project with ID:', inassertResult.rows[0].id);
+    console.log('Inserted project with ID:', insertResult.rows[0].id);
 
     // Return some data to indicate success
     return json({ success: "Project added successfully." });

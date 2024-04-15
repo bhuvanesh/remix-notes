@@ -6,7 +6,7 @@ import {
 } from "../components/ui/popover";
 import { useEffect, useRef } from "react";
 
-export default function ProjectForm({ userId, templates }) {
+export default function ProjectForm({ userId, templates, projectManagers }) {
   const transition = useNavigation();
   const formRef = useRef(null);
 
@@ -82,6 +82,24 @@ export default function ProjectForm({ userId, templates }) {
                 >
                   <option value="Wind">Wind</option>
                   <option value="Solar">Solar</option>
+                </select>
+              </label>
+            </div>
+            {/* Dropdown for Project Manager */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Project Manager
+                <select
+                  name="projectManager"
+                  required
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="">Select a Project Manager</option>
+                  {projectManagers.map((manager) => (
+                    <option key={manager.id} value={manager.id}>
+                      {manager.name}
+                    </option>
+                  ))}
                 </select>
               </label>
             </div>

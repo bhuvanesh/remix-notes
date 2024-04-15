@@ -185,11 +185,18 @@ export default function Upload() {
         </Breadcrumb>
       </div>
       {/* Upload Summary button */}
-      <div className="absolute top-0 right-0 p-4">
-        <Link to={`/clients/projects/table/${userId}-${projectid}`} className="bg-white text-purple-600 font-bold rounded px-4 py-2 hover:bg-gray-300">
-          Upload Summary
-        </Link>
-      </div>
+      <div className="absolute top-0 right-0 p-4 flex space-x-4">
+  <Link to={`/clients/projects/table/${userId}-${projectid}`} className="bg-white text-purple-600 font-bold rounded px-4 py-2 hover:bg-gray-300">
+    Upload Summary
+  </Link>
+  <Link to={`/projects/milestone/${projectid}`} className="bg-white text-purple-600 font-bold rounded px-4 py-2 hover:bg-gray-300">
+Add Milestone  </Link>
+<Link to={`/clients/milestone/${projectid}`} className="bg-white text-purple-600 font-bold rounded px-4 py-2 hover:bg-gray-300">
+Manage Milestone  </Link>
+<Link to={`/clients/editprojects/${projectid}`} className="bg-white text-purple-600 font-bold rounded px-4 py-2 hover:bg-gray-300">
+Edit project  </Link>
+
+</div>
       <div className="text-center mb-8">
         <h1 className="text-3xl text-white">{projectName}</h1>
         <h2 className="text-xl text-white">Project ID: {projectid}</h2>
