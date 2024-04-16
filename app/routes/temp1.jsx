@@ -30,7 +30,7 @@ export default function UploadPDF() {
   return (
     <div>
       <Form
-        method="post"
+        method="PUT"
         encType="multipart/form-data"
         onSubmit={() => {
           setUploading(true);
