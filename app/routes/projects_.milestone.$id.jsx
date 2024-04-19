@@ -35,10 +35,16 @@ export const loader = async (args) => {
       [projectid]
     );
 
-    return { projectid, milestones };
+    const { rows: employees } = await db.query(
+      `
+      SELECT id, name FROM public.employees
+      `
+    );
+
+    return { projectid, milestones, employees };
   } catch (error) {
-    console.error("Error fetching milestones:", error);
-    return { projectid, milestones: [] };
+    console.error("Error fetching data:", error);
+    return { projectid, milestones: [], employees: [] };
   }
 };
 
@@ -51,6 +57,8 @@ export const action = async ({ request, params }) => {
   const revenue = parseFloat(formData.get("revenue"));
   const docsRequired = formData.get("docsRequired") === "on"; 
   const projectid = params.id;
+  const poc = parseInt(formData.get("poc"), 10);
+
 
   try {
     await db.query('BEGIN');
@@ -76,14 +84,14 @@ export const action = async ({ request, params }) => {
       );
     }
 
-    // Insert the new milestone with the docsRequired value
+    // Insert the new milestone with the docsRequired and poc values
     const { rows } = await db.query(
       `
-      INSERT INTO public.milestones (milestone_number, milestone_name, expected_date, cost, revenue, is_completed, project_code, emp_code, pm_code, docs_req)
-      VALUES ($1, $2, $3, $4, $5, false, $6, (SELECT pm_code FROM public.projects WHERE id = $6), (SELECT pm_code FROM public.projects WHERE id = $6), $7)
+      INSERT INTO public.milestones (milestone_number, milestone_name, expected_date, cost, revenue, is_completed, project_code, emp_code, pm_code, docs_req, poc)
+      VALUES ($1, $2, $3, $4, $5, false, $6, (SELECT pm_code FROM public.projects WHERE id = $6), (SELECT pm_code FROM public.projects WHERE id = $6), $7, $8)
       RETURNING *;
       `,
-      [milestoneNumber, milestoneName, completionDate, cost, revenue, projectid, docsRequired]
+      [milestoneNumber, milestoneName, completionDate, cost, revenue, projectid, docsRequired, poc]
     );
 
     await db.query('COMMIT');
@@ -99,7 +107,8 @@ export const action = async ({ request, params }) => {
 const Milestone = () => {
   const actionData = useActionData();
   const transition = useNavigation();
-  const { projectid, milestones } = useLoaderData();
+  const { projectid, milestones, employees } = useLoaderData();
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-violet-500 to-violet-800 flex items-center justify-center">
@@ -169,6 +178,23 @@ const Milestone = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           </div>
+          <div className="mb-4">
+        <label htmlFor="poc" className="block mb-2 font-bold text-gray-700">
+          POC
+        </label>
+        <select
+          id="poc"
+          name="poc"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+        >
+          <option value="">Select POC</option>
+          {employees.map((employee) => (
+            <option key={employee.id} value={employee.id}>
+              {employee.name}
+            </option>
+          ))}
+        </select>
+      </div>
           <div className="mb-4">
   <label htmlFor="docsRequired" className="block mb-2 font-bold text-gray-700">
     Document Required

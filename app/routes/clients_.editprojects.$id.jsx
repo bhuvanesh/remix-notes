@@ -50,7 +50,7 @@ export const action = async ({ request, params }) => {
       [template_type, project_name, type, project_type, description, projectid]
     );
 
-    return redirect(`/projects/${projectid}`);
+    return redirect(`/clients`);
   }
 };
 

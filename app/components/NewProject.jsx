@@ -103,6 +103,21 @@ export default function ProjectForm({ userId, templates, projectManagers }) {
                 </select>
               </label>
             </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Project Type
+                <select
+                  name="projectType"
+                  required
+                  defaultValue="VCS"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="VCS">VCS</option>
+                  <option value="GCC">GCC</option>
+                  <option value="IREC">IREC</option>
+                </select>
+              </label>
+            </div>
           </div>
           <div className="p-6 bg-gray-50 rounded-b-lg">
             <button

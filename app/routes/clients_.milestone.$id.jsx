@@ -94,11 +94,21 @@ export const loader = async (args) => {
                     )}
                   </div>
                   <button
-                    className="text-white font-bold text-sm hover:underline ml-2"
-                    onClick={() => handleMilestoneClick(milestone)}
-                  >
-                    {milestone.milestone_name}
-                  </button>
+  className="text-white font-bold text-sm hover:underline ml-2"
+  onClick={() => handleMilestoneClick(milestone)}
+>
+  {milestone.milestone_name}{" "}
+  {milestone.is_completed ? (
+    <span className="text-green-500">
+      ({new Date(milestone.completed_date).toLocaleDateString()})
+    </span>
+  ) : (
+    <span className="text-red-500">
+      ({new Date(milestone.expected_date).toLocaleDateString()})
+    </span>
+  )}
+</button>
+
                 </div>
               ))}
             </div>

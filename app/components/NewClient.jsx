@@ -7,14 +7,12 @@ import db from "./../utils/cdb.server";
 import { useEffect, useRef } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "../components/ui/popover";
 
-
-
 export default function Users() {
   const transition = useNavigation();
   const formRef = useRef(null);
 
   useEffect(() => {
-    if (transition.state === "submitting") {
+    if (transition.state === "submitting" && formRef.current) {
       formRef.current.reset();
     }
   }, [transition.state]);
@@ -31,42 +29,7 @@ export default function Users() {
           <div className="w-full">
             <h2 className="text-xl font-bold mb-4 text-center">Create Client</h2>
             <Form method="post" ref={formRef} className="bg-white rounded">
-              <div className="mb-3">
-                <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-1">
-                  Email:
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="username" className="block text-gray-700 text-sm font-bold mb-1">
-                  Username(client name):
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  required
-                  className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-1">
-                  Password:
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  required
-                  className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-indigo-500"
-                />
-              </div>
+              {/* Form fields */}
               <div className="flex items-center justify-center">
                 <button
                   type="submit"
@@ -88,5 +51,4 @@ export default function Users() {
       </PopoverContent>
     </Popover>
   );
-  
 }

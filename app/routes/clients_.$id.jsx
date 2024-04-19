@@ -166,6 +166,8 @@ export async function action({ request }) {
   const templateType = formData.get("templateType");
   const type = formData.get("type");
   const projectManager = formData.get("projectManager"); 
+  const projectType = formData.get("projectType");
+
 
   try {
     // Fetch the highest current id in the projects table
@@ -180,12 +182,12 @@ export async function action({ request }) {
     // Increment the nextId by 1
     nextId += 1;
 
-    // Insert the new project with the incremented id, template type, type, and project manager
+    // Insert the new project with the incremented id, template type, type, project manager, and project type
     const insertResult = await db.query(
-      `INSERT INTO public.projects (id, project_name, client_code, description, created_at, template_type, type, pm_code)
-       VALUES ($1, $2, $3, $4, NOW(), $5, $6, $7)
+      `INSERT INTO public.projects (id, project_name, client_code, description, created_at, template_type, type, pm_code, project_type)
+       VALUES ($1, $2, $3, $4, NOW(), $5, $6, $7, $8)
        RETURNING id;`,
-      [nextId, projectName, clientCode, projectDescription, templateType, type, projectManager]
+      [nextId, projectName, clientCode, projectDescription, templateType, type, projectManager, projectType]
     );
 
     console.log('Inserted project with ID:', insertResult.rows[0].id);
